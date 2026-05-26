@@ -1,0 +1,68 @@
+# Loki — single-binary mode (lab local, sem S3)
+# Toda a stack (leitura, escrita, backend) num único processo.
+
+deploymentMode: SingleBinary
+
+loki:
+  auth_enabled: false   # sem multi-tenant no lab
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: filesystem
+  limits_config:
+    retention_period: 48h    # 2 dias — suficiente pra lab
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+singleBinary:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  persistence:
+    enabled: true
+    size: 5Gi
+
+# Desabilita os componentes distribuídos — não precisamos em single-binary
+read:
+  replicas: 0
+write:
+  replicas: 0
+backend:
+  replicas: 0
+
+# Desabilita cache distribuído
+memcached:
+  enabled: false
+memcachedFrontend:
+  enabled: false
+memcachedIndexQueries:
+  enabled: false
+memcachedChunks:
+  enabled: false
+
+gateway:
+  enabled: true   # proxy HTTP que o Alloy e o Grafana acessam
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+test:
+  enabled: false
+lokiCanary:
+  enabled: false
