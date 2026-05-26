@@ -24,3 +24,6 @@ charts/*.tgz
 # Claude Code logs
 .claude/logs/
 .claude/cache/
+
+# Binários Go compilados
+app/traffic-simulator
