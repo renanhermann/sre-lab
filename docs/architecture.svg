@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="780" viewBox="0 0 1200 780" xmlns="http://www.w3.org/2000/svg"
+     font-family="'SF Mono','Fira Code','Cascadia Code',monospace">
+
+  <defs>
+    <marker id="arr-blue"   markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#388bfd"/></marker>
+    <marker id="arr-red"    markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#f78166"/></marker>
+    <marker id="arr-green"  markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/></marker>
+    <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#e36209"/></marker>
+    <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#d2a8ff"/></marker>
+    <marker id="arr-grafana" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#f46800"/></marker>
+  </defs>
+
+  <!-- ── Background ───────────────────────────────────────── -->
+  <rect width="1200" height="780" fill="#0d1117" rx="12"/>
+
+  <!-- ── Title ─────────────────────────────────────────────── -->
+  <text x="600" y="38" text-anchor="middle" fill="#e6edf3" font-size="20" font-weight="bold">SRE Lab — Architecture</text>
+  <text x="600" y="58" text-anchor="middle" fill="#7d8590" font-size="11">Kubernetes observability platform · Claude Code agents · GitOps</text>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LEFT COLUMN — Claude + Agents                          -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <!-- Claude Code -->
+  <rect x="18" y="78" width="188" height="68" rx="8" fill="#161b22" stroke="#388bfd" stroke-width="2"/>
+  <text x="112" y="101" text-anchor="middle" fill="#388bfd" font-size="11" font-weight="bold">✦  CLAUDE CODE</text>
+  <text x="112" y="118" text-anchor="middle" fill="#7d8590" font-size="10">Agent Orchestrator</text>
+  <text x="112" y="134" text-anchor="middle" fill="#7d8590" font-size="9">claude-sonnet-4-6</text>
+
+  <!-- SRE Specialist -->
+  <rect x="18" y="165" width="188" height="72" rx="8" fill="#161b22" stroke="#f78166" stroke-width="1.5"/>
+  <text x="112" y="187" text-anchor="middle" fill="#f78166" font-size="10" font-weight="bold">🔥  SRE SPECIALIST</text>
+  <text x="112" y="204" text-anchor="middle" fill="#7d8590" font-size="9">RED / USE analysis</text>
+  <text x="112" y="219" text-anchor="middle" fill="#7d8590" font-size="9">PromQL · LogQL · Triage</text>
+  <text x="112" y="232" text-anchor="middle" fill="#7d8590" font-size="9">Runbook executor</text>
+
+  <!-- K8s Specialist -->
+  <rect x="18" y="256" width="188" height="72" rx="8" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="112" y="278" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="bold">☸  K8S SPECIALIST</text>
+  <text x="112" y="295" text-anchor="middle" fill="#7d8590" font-size="9">Pods · HPA · Events</text>
+  <text x="112" y="310" text-anchor="middle" fill="#7d8590" font-size="9">Rightsizing · Health</text>
+  <text x="112" y="323" text-anchor="middle" fill="#7d8590" font-size="9">kubectl diagnostics</text>
+
+  <!-- Git Specialist -->
+  <rect x="18" y="347" width="188" height="72" rx="8" fill="#161b22" stroke="#d2a8ff" stroke-width="1.5"/>
+  <text x="112" y="369" text-anchor="middle" fill="#d2a8ff" font-size="10" font-weight="bold">⎇  GIT SPECIALIST</text>
+  <text x="112" y="386" text-anchor="middle" fill="#7d8590" font-size="9">Atomic commits</text>
+  <text x="112" y="401" text-anchor="middle" fill="#7d8590" font-size="9">feat · ops · docs · fix</text>
+  <text x="112" y="414" text-anchor="middle" fill="#7d8590" font-size="9">GitOps workflow</text>
+
+  <!-- GitHub -->
+  <rect x="18" y="450" width="188" height="58" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="112" y="474" text-anchor="middle" fill="#e6edf3" font-size="11" font-weight="bold">⎇  GitHub</text>
+  <text x="112" y="492" text-anchor="middle" fill="#7d8590" font-size="9">renanhermann/sre-lab</text>
+  <text x="112" y="504" text-anchor="middle" fill="#3fb950" font-size="9">● public</text>
+
+  <!-- Oracle Cloud (roadmap) -->
+  <rect x="18" y="535" width="188" height="65" rx="8" fill="#161b22" stroke="#e36209" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="112" y="558" text-anchor="middle" fill="#e36209" font-size="10" font-weight="bold">☁  ORACLE CLOUD</text>
+  <text x="112" y="574" text-anchor="middle" fill="#7d8590" font-size="9">OKE · Terraform · IRSA</text>
+  <text x="112" y="590" text-anchor="middle" fill="#e36209" font-size="9" font-style="italic">→ próxima fase</text>
+
+  <!-- Runbooks note -->
+  <rect x="18" y="625" width="188" height="55" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="112" y="645" text-anchor="middle" fill="#7d8590" font-size="9" font-weight="bold">📋  Runbooks</text>
+  <text x="112" y="660" text-anchor="middle" fill="#7d8590" font-size="9">high-error-rate.md</text>
+  <text x="112" y="673" text-anchor="middle" fill="#7d8590" font-size="9">high-latency.md</text>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- CENTER — Kubernetes Cluster                            -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <!-- K8s outer box -->
+  <rect x="232" y="74" width="948" height="590" rx="10" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+  <text x="706" y="97" text-anchor="middle" fill="#7d8590" font-size="11">☸  Kubernetes — Minikube  ·  6 CPU  ·  8 GB RAM  ·  v1.30</text>
+
+  <!-- ── namespace: default ── -->
+  <rect x="250" y="108" width="912" height="138" rx="8" fill="#161b22" stroke="#388bfd" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="706" y="126" text-anchor="middle" fill="#388bfd" font-size="10" font-weight="bold">namespace: default</text>
+
+  <!-- traffic-simulator -->
+  <rect x="268" y="135" width="200" height="96" rx="6" fill="#0d1117" stroke="#388bfd" stroke-width="1"/>
+  <text x="368" y="155" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="bold">traffic-simulator</text>
+  <text x="368" y="170" text-anchor="middle" fill="#7d8590" font-size="9">Deployment  (Go · ~8 MB)</text>
+  <text x="368" y="184" text-anchor="middle" fill="#7d8590" font-size="9">replicas: 2 → 5</text>
+  <text x="368" y="198" text-anchor="middle" fill="#7d8590" font-size="9">GET /health · GET /metrics</text>
+  <text x="368" y="212" text-anchor="middle" fill="#56d364" font-size="9">JSON structured logs</text>
+
+  <!-- HPA -->
+  <rect x="482" y="135" width="148" height="42" rx="6" fill="#0d1117" stroke="#3fb950" stroke-width="1"/>
+  <text x="556" y="152" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="bold">HPA</text>
+  <text x="556" y="168" text-anchor="middle" fill="#7d8590" font-size="9">CPU ≥ 70% → scale out</text>
+
+  <!-- PDB -->
+  <rect x="482" y="188" width="148" height="42" rx="6" fill="#0d1117" stroke="#d2a8ff" stroke-width="1"/>
+  <text x="556" y="205" text-anchor="middle" fill="#d2a8ff" font-size="10" font-weight="bold">PDB</text>
+  <text x="556" y="221" text-anchor="middle" fill="#7d8590" font-size="9">minAvailable: 1</text>
+
+  <!-- Stress endpoints -->
+  <rect x="645" y="135" width="498" height="96" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="894" y="155" text-anchor="middle" fill="#7d8590" font-size="10" font-weight="bold">Stress Endpoints</text>
+  <text x="894" y="172" text-anchor="middle" fill="#56d364" font-size="9">POST /stress/cpu?seconds=N      →  queima CPU  →  HPA escala</text>
+  <text x="894" y="187" text-anchor="middle" fill="#f78166" font-size="9">POST /stress/error               →  HTTP 500    →  HighErrorRate ⚠</text>
+  <text x="894" y="202" text-anchor="middle" fill="#e3b341" font-size="9">POST /stress/latency?ms=N        →  lento       →  HighLatencyP99 ⚠</text>
+  <text x="894" y="217" text-anchor="middle" fill="#79c0ff" font-size="9">POST /traffic/start?rps=N        →  gerador de carga contínua</text>
+
+  <!-- ── namespace: monitoring ── -->
+  <rect x="250" y="260" width="912" height="228" rx="8" fill="#161b22" stroke="#f78166" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="706" y="278" text-anchor="middle" fill="#f78166" font-size="10" font-weight="bold">namespace: monitoring</text>
+
+  <!-- Prometheus -->
+  <rect x="268" y="288" width="188" height="90" rx="6" fill="#0d1117" stroke="#e36209" stroke-width="1.2"/>
+  <text x="362" y="308" text-anchor="middle" fill="#e36209" font-size="11" font-weight="bold">Prometheus</text>
+  <text x="362" y="325" text-anchor="middle" fill="#7d8590" font-size="9">scrape interval: 15s</text>
+  <text x="362" y="340" text-anchor="middle" fill="#7d8590" font-size="9">retention: 3d · 5GB</text>
+  <text x="362" y="355" text-anchor="middle" fill="#7d8590" font-size="9">TSDB local storage</text>
+  <text x="362" y="370" text-anchor="middle" fill="#388bfd" font-size="9">:9090</text>
+
+  <!-- Grafana -->
+  <rect x="472" y="288" width="188" height="90" rx="6" fill="#0d1117" stroke="#f46800" stroke-width="1.2"/>
+  <text x="566" y="308" text-anchor="middle" fill="#f46800" font-size="11" font-weight="bold">Grafana</text>
+  <text x="566" y="325" text-anchor="middle" fill="#7d8590" font-size="9">RED dashboard</text>
+  <text x="566" y="340" text-anchor="middle" fill="#7d8590" font-size="9">USE dashboard</text>
+  <text x="566" y="355" text-anchor="middle" fill="#7d8590" font-size="9">datasources: Prom + Loki</text>
+  <text x="566" y="370" text-anchor="middle" fill="#388bfd" font-size="9">:3000</text>
+
+  <!-- AlertManager -->
+  <rect x="676" y="288" width="188" height="90" rx="6" fill="#0d1117" stroke="#d2a8ff" stroke-width="1.2"/>
+  <text x="770" y="308" text-anchor="middle" fill="#d2a8ff" font-size="11" font-weight="bold">AlertManager</text>
+  <text x="770" y="325" text-anchor="middle" fill="#f78166" font-size="9">HighErrorRate  &gt; 5%</text>
+  <text x="770" y="340" text-anchor="middle" fill="#e3b341" font-size="9">HighLatencyP99 &gt; 1s</text>
+  <text x="770" y="355" text-anchor="middle" fill="#79c0ff" font-size="9">HighActiveReqs &gt; 20</text>
+  <text x="770" y="370" text-anchor="middle" fill="#388bfd" font-size="9">:9093</text>
+
+  <!-- node-exporter -->
+  <rect x="268" y="392" width="188" height="80" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="362" y="411" text-anchor="middle" fill="#7d8590" font-size="10" font-weight="bold">node-exporter</text>
+  <text x="362" y="427" text-anchor="middle" fill="#7d8590" font-size="9">CPU · MEM · Disk · Net</text>
+  <text x="362" y="442" text-anchor="middle" fill="#7d8590" font-size="9">DaemonSet</text>
+  <text x="362" y="457" text-anchor="middle" fill="#7d8590" font-size="9">USE metrics → Prometheus</text>
+
+  <!-- kube-state-metrics -->
+  <rect x="472" y="392" width="188" height="80" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="566" y="411" text-anchor="middle" fill="#7d8590" font-size="10" font-weight="bold">kube-state-metrics</text>
+  <text x="566" y="427" text-anchor="middle" fill="#7d8590" font-size="9">Pods · Deployments</text>
+  <text x="566" y="442" text-anchor="middle" fill="#7d8590" font-size="9">HPA · PVC · Events</text>
+  <text x="566" y="457" text-anchor="middle" fill="#7d8590" font-size="9">K8s objects → metrics</text>
+
+  <!-- ServiceMonitor + PrometheusRule -->
+  <rect x="676" y="392" width="468" height="80" rx="6" fill="#0d1117" stroke="#388bfd" stroke-width="1"/>
+  <text x="910" y="411" text-anchor="middle" fill="#388bfd" font-size="10" font-weight="bold">ServiceMonitor  ·  PrometheusRule</text>
+  <text x="910" y="428" text-anchor="middle" fill="#7d8590" font-size="9">ServiceMonitor → descobre traffic-simulator · GET /metrics · 15s</text>
+  <text x="910" y="444" text-anchor="middle" fill="#7d8590" font-size="9">PrometheusRule → define os 3 alertas acima (avaliação: 30s)</text>
+  <text x="910" y="460" text-anchor="middle" fill="#7d8590" font-size="9">label: release=kube-prometheus-stack → Prometheus Operator descobre</text>
+
+  <!-- ── namespace: logging ── -->
+  <rect x="250" y="502" width="912" height="148" rx="8" fill="#161b22" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="706" y="520" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="bold">namespace: logging</text>
+
+  <!-- Loki -->
+  <rect x="268" y="530" width="260" height="104" rx="6" fill="#0d1117" stroke="#3fb950" stroke-width="1.2"/>
+  <text x="398" y="550" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="bold">Loki</text>
+  <text x="398" y="567" text-anchor="middle" fill="#7d8590" font-size="9">SingleBinary mode</text>
+  <text x="398" y="582" text-anchor="middle" fill="#7d8590" font-size="9">schema: v13 (tsdb) · retention: 48h</text>
+  <text x="398" y="597" text-anchor="middle" fill="#7d8590" font-size="9">storage: filesystem (PVC 5Gi)</text>
+  <text x="398" y="612" text-anchor="middle" fill="#388bfd" font-size="9">gateway :3100</text>
+
+  <!-- Alloy -->
+  <rect x="544" y="530" width="260" height="104" rx="6" fill="#0d1117" stroke="#56d364" stroke-width="1.2"/>
+  <text x="674" y="550" text-anchor="middle" fill="#56d364" font-size="11" font-weight="bold">Alloy</text>
+  <text x="674" y="567" text-anchor="middle" fill="#7d8590" font-size="9">DaemonSet (1 pod/nó)</text>
+  <text x="674" y="582" text-anchor="middle" fill="#7d8590" font-size="9">loki.source.kubernetes</text>
+  <text x="674" y="597" text-anchor="middle" fill="#7d8590" font-size="9">labels: namespace · pod · container</text>
+  <text x="674" y="612" text-anchor="middle" fill="#7d8590" font-size="9">JSON structured log parsing</text>
+
+  <!-- LogQL -->
+  <rect x="820" y="530" width="325" height="104" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="982" y="550" text-anchor="middle" fill="#7d8590" font-size="10" font-weight="bold">LogQL — queries via SRE Specialist</text>
+  <text x="982" y="568" text-anchor="middle" fill="#56d364" font-size="9">{namespace="default", app="traffic-simulator"}</text>
+  <text x="982" y="583" text-anchor="middle" fill="#56d364" font-size="9">|= "ERROR" | json | line_format "{{.message}}"</text>
+  <text x="982" y="600" text-anchor="middle" fill="#7d8590" font-size="9">correlação: timestamp alerta → log do pod causador</text>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ARROWS                                                 -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <!-- Claude Code → SRE Specialist -->
+  <line x1="112" y1="146" x2="112" y2="163" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <!-- SRE Specialist → K8s Specialist -->
+  <line x1="112" y1="237" x2="112" y2="254" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <!-- K8s Specialist → Git Specialist -->
+  <line x1="112" y1="328" x2="112" y2="345" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <!-- Git Specialist → GitHub -->
+  <line x1="112" y1="419" x2="112" y2="448" stroke="#d2a8ff" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+  <!-- GitHub → OCI (roadmap) -->
+  <line x1="112" y1="508" x2="112" y2="533" stroke="#e36209" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
+
+  <!-- Claude Code → K8s cluster -->
+  <line x1="206" y1="112" x2="248" y2="112" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+
+  <!-- SRE Specialist ⤳ Prometheus (query) -->
+  <path d="M 206 195 Q 230 195 230 333 L 266 333" stroke="#f78166" stroke-width="1.5" fill="none" stroke-dasharray="6,3" marker-end="url(#arr-red)"/>
+
+  <!-- SRE Specialist ⤳ Loki (query) -->
+  <path d="M 206 210 Q 240 210 240 580 L 266 580" stroke="#f78166" stroke-width="1.5" fill="none" stroke-dasharray="6,3" marker-end="url(#arr-red)"/>
+
+  <!-- K8s Specialist ⤳ cluster (kubectl) -->
+  <path d="M 206 292 Q 232 292 232 183 L 248 183" stroke="#3fb950" stroke-width="1.5" fill="none" stroke-dasharray="6,3" marker-end="url(#arr-green)"/>
+
+  <!-- traffic-simulator → Alloy (logs) -->
+  <path d="M 368 231 Q 368 490 544 582" stroke="#56d364" stroke-width="1.2" fill="none" stroke-dasharray="4,2" marker-end="url(#arr-green)"/>
+
+  <!-- Alloy → Loki -->
+  <line x1="544" y1="582" x2="530" y2="582" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+  <!-- traffic-simulator → ServiceMonitor (metrics) -->
+  <path d="M 468 183 Q 580 183 676 430" stroke="#388bfd" stroke-width="1.2" fill="none" stroke-dasharray="4,2" marker-end="url(#arr-blue)"/>
+
+  <!-- ServiceMonitor → Prometheus -->
+  <path d="M 676 432 Q 560 432 456 378" stroke="#e36209" stroke-width="1.2" fill="none" stroke-dasharray="4,2" marker-end="url(#arr-orange)"/>
+
+  <!-- node-exporter → Prometheus -->
+  <line x1="362" y1="392" x2="362" y2="380" stroke="#e36209" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-orange)"/>
+
+  <!-- kube-state-metrics → Prometheus -->
+  <path d="M 566 392 Q 566 380 456 370" stroke="#e36209" stroke-width="1" fill="none" stroke-dasharray="3,2" marker-end="url(#arr-orange)"/>
+
+  <!-- Prometheus → Grafana -->
+  <line x1="456" y1="333" x2="470" y2="333" stroke="#f46800" stroke-width="1.5" marker-end="url(#arr-grafana)"/>
+
+  <!-- Prometheus → AlertManager -->
+  <line x1="660" y1="333" x2="674" y2="333" stroke="#d2a8ff" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+
+  <!-- Loki → Grafana -->
+  <path d="M 398 530 Q 398 440 472 380" stroke="#3fb950" stroke-width="1.2" fill="none" stroke-dasharray="4,2" marker-end="url(#arr-grafana)"/>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LEGEND                                                 -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <rect x="232" y="670" width="948" height="92" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="706" y="691" text-anchor="middle" fill="#7d8590" font-size="10" font-weight="bold">Legenda de fluxos</text>
+
+  <line x1="260" y1="715" x2="310" y2="715" stroke="#388bfd" stroke-width="2" marker-end="url(#arr-blue)"/>
+  <text x="318" y="719" fill="#7d8590" font-size="9">orquestração / kubectl</text>
+
+  <line x1="455" y1="715" x2="505" y2="715" stroke="#f78166" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-red)"/>
+  <text x="513" y="719" fill="#7d8590" font-size="9">query (PromQL / LogQL)</text>
+
+  <line x1="670" y1="715" x2="720" y2="715" stroke="#3fb950" stroke-width="2" marker-end="url(#arr-green)"/>
+  <text x="728" y="719" fill="#7d8590" font-size="9">fluxo de logs</text>
+
+  <line x1="840" y1="715" x2="890" y2="715" stroke="#e36209" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#arr-orange)"/>
+  <text x="898" y="719" fill="#7d8590" font-size="9">métricas (scrape)</text>
+
+  <line x1="1010" y1="715" x2="1060" y2="715" stroke="#f46800" stroke-width="2" marker-end="url(#arr-grafana)"/>
+  <text x="1068" y="719" fill="#7d8590" font-size="9">visualização (Grafana)</text>
+
+  <!-- Stack versions -->
+  <text x="706" y="750" text-anchor="middle" fill="#484f58" font-size="9">
+    Kubernetes 1.30  ·  Prometheus 3.x  ·  Grafana 12.x  ·  Loki 3.6  ·  Alloy 1.x  ·  Go 1.22  ·  Claude Code agents
+  </text>
+
+</svg>
