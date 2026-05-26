@@ -1,0 +1,11 @@
+# Copie este arquivo para terraform.tfvars e preencha com seus valores
+# O arquivo terraform.tfvars é gitignored — nunca commite credentials!
+
+tenancy_ocid     = "ocid1.tenancy.oc1..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+user_ocid        = "ocid1.user.oc1..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+private_key_path = "~/.oci/oci_api_key.pem"
+region           = "sa-saopaulo-1"
+
+# compartment_ocid = tenancy_ocid para usar o root compartment
+compartment_ocid = "ocid1.tenancy.oc1..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
