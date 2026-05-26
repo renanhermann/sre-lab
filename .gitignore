@@ -1,0 +1,26 @@
+# Secrets / credentials
+.env
+*.pem
+*.key
+kubeconfig
+.kube/
+
+# Terraform (Fase 2)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+
+# Helm
+charts/*.tgz
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Claude Code logs
+.claude/logs/
+.claude/cache/
