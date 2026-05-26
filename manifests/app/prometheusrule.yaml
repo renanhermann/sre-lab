@@ -1,0 +1,51 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: traffic-simulator
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: traffic-simulator.rules
+      interval: 30s
+      rules:
+
+        # Alerta 1: taxa de erros HTTP 5xx acima de 5%
+        - alert: HighErrorRate
+          expr: |
+            sum(rate(traffic_simulator_requests_total{status=~"5.."}[2m]))
+            /
+            sum(rate(traffic_simulator_requests_total[2m])) > 0.05
+          for: 1m
+          labels:
+            severity: warning
+            app: traffic-simulator
+          annotations:
+            summary: "Alta taxa de erros — traffic-simulator"
+            description: "Error rate acima de 5% por mais de 1 minuto. Acione: POST /stress/error para reproduzir."
+
+        # Alerta 2: latência P99 acima de 1 segundo
+        - alert: HighLatencyP99
+          expr: |
+            histogram_quantile(0.99,
+              sum(rate(traffic_simulator_request_duration_seconds_bucket[5m])) by (le)
+            ) > 1
+          for: 2m
+          labels:
+            severity: warning
+            app: traffic-simulator
+          annotations:
+            summary: "Latência P99 alta — traffic-simulator"
+            description: "P99 latência acima de 1s por mais de 2 minutos. Acione: POST /stress/latency?ms=1500 para reproduzir."
+
+        # Alerta 3: muitas requisições simultâneas
+        - alert: HighActiveRequests
+          expr: traffic_simulator_active_requests > 20
+          for: 1m
+          labels:
+            severity: warning
+            app: traffic-simulator
+          annotations:
+            summary: "Saturação de requisições ativas — traffic-simulator"
+            description: "Mais de 20 requisições ativas simultâneas. Possível saturação do serviço."

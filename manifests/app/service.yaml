@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: traffic-simulator
+  namespace: default
+  labels:
+    app: traffic-simulator
+spec:
+  selector:
+    app: traffic-simulator
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

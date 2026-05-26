@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: traffic-simulator
+  namespace: default
+spec:
+  minAvailable: 1   # garante ao menos 1 réplica durante drains e rolling updates
+  selector:
+    matchLabels:
+      app: traffic-simulator

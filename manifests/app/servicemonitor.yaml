@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: traffic-simulator
+  namespace: monitoring          # precisa estar no namespace do Prometheus
+  labels:
+    release: kube-prometheus-stack   # label que o Prometheus Operator usa pra descobrir
+spec:
+  namespaceSelector:
+    matchNames:
+      - default                  # onde o Service está
+  selector:
+    matchLabels:
+      app: traffic-simulator
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
