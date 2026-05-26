@@ -1,19 +1,34 @@
 # Copie para terraform.tfvars e preencha com seus valores
+# O arquivo terraform.tfvars é gitignored — nunca commite credentials
 
-tenancy_ocid     = "ocid1.tenancy.oc1..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-user_ocid        = "ocid1.user.oc1..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
-private_key_path = "~/.oci/oci_api_key.pem"
-region           = "sa-saopaulo-1"
-compartment_ocid = "ocid1.tenancy.oc1..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+region = "sa-saopaulo-1"
 
-# OCIDs da rede (outputs do 00-foundation)
-vcn_id           = "ocid1.vcn.oc1.sa-saopaulo-1.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-public_subnet_id  = "ocid1.subnet.oc1.sa-saopaulo-1.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-private_subnet_id = "ocid1.subnet.oc1.sa-saopaulo-1.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+oci_auth = {
+  tenancy_ocid     = "ocid1.tenancy.oc1..XXXXXXXX"
+  user_ocid        = "ocid1.user.oc1..XXXXXXXX"
+  fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+  private_key_path = "~/.oci/oci_api_key.pem"
+  compartment_ocid = "ocid1.tenancy.oc1..XXXXXXXX"
+}
 
-# Node pool — ARM A1.Flex (2 nodes × 2 OCPUs × 12GB = free tier)
-node_shape     = "VM.Standard.A1.Flex"
-node_ocpus     = 2
-node_memory_gb = 12
-node_count     = 2
+# Preencha com os outputs do 00-foundation:
+#   terraform output -raw vcn_id
+#   terraform output -raw public_subnet_id
+#   terraform output -raw private_subnet_id
+network = {
+  vcn_id            = "ocid1.vcn.oc1.sa-saopaulo-1.XXXXXXXX"
+  public_subnet_id  = "ocid1.subnet.oc1.sa-saopaulo-1.XXXXXXXX"
+  private_subnet_id = "ocid1.subnet.oc1.sa-saopaulo-1.XXXXXXXX"
+}
+
+# Cluster e node_pool usam defaults do variable.tf
+# Sobrescreva aqui se quiser customizar shape, k8s version, etc:
+#
+# node_pool = {
+#   name           = "sre-lab-nodepool"
+#   shape          = "VM.Standard.A1.Flex"  # ARM Always Free (se houver capacidade)
+#   ocpus          = 2
+#   memory_gb      = 12
+#   count          = 2
+#   boot_volume_gb = 50
+# }
