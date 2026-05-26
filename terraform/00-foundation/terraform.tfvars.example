@@ -1,11 +1,27 @@
-# Copie este arquivo para terraform.tfvars e preencha com seus valores
-# O arquivo terraform.tfvars é gitignored — nunca commite credentials!
+# Copie para terraform.tfvars e preencha com seus valores
+# O arquivo terraform.tfvars é gitignored — nunca commite credentials
 
-tenancy_ocid     = "ocid1.tenancy.oc1..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-user_ocid        = "ocid1.user.oc1..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
-private_key_path = "~/.oci/oci_api_key.pem"
-region           = "sa-saopaulo-1"
+region = "us-ashburn-1"
 
-# compartment_ocid = tenancy_ocid para usar o root compartment
-compartment_ocid = "ocid1.tenancy.oc1..XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+oci_auth = {
+  tenancy_ocid     = "ocid1.tenancy.oc1..XXXXXXXX"
+  user_ocid        = "ocid1.user.oc1..XXXXXXXX"
+  fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+  private_key_path = "~/.oci/oci_api_key.pem"
+  compartment_ocid = "ocid1.tenancy.oc1..XXXXXXXX"
+}
+
+# Toda config de VCN está nos defaults do variable.tf
+# Sobrescreva aqui apenas se quiser customizar:
+#
+# vcn = {
+#   cidr_block = "172.16.0.0/16"
+#   ...
+# }
+#
+# tags = {
+#   ManagedBy = "terraform"
+#   Project   = "sre-lab"
+#   Env       = "production"
+#   Owner     = "sre-team"
+# }
