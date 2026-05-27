@@ -16,7 +16,7 @@
 
   <!-- ── Title ─────────────────────────────────────────────── -->
   <text x="600" y="38" text-anchor="middle" fill="#e6edf3" font-size="20" font-weight="bold">SRE Lab — Architecture</text>
-  <text x="600" y="58" text-anchor="middle" fill="#7d8590" font-size="11">Kubernetes observability platform · Claude Code agents · GitOps</text>
+  <text x="600" y="58" text-anchor="middle" fill="#7d8590" font-size="11">Kubernetes observability platform · OKE/Terraform · Claude Code agents · GitOps</text>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- LEFT COLUMN — Claude + Agents                          -->
@@ -55,17 +55,18 @@
   <text x="112" y="492" text-anchor="middle" fill="#7d8590" font-size="9">renanhermann/sre-lab</text>
   <text x="112" y="504" text-anchor="middle" fill="#3fb950" font-size="9">● public</text>
 
-  <!-- Oracle Cloud (roadmap) -->
-  <rect x="18" y="535" width="188" height="65" rx="8" fill="#161b22" stroke="#e36209" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <text x="112" y="558" text-anchor="middle" fill="#e36209" font-size="10" font-weight="bold">☁  ORACLE CLOUD</text>
-  <text x="112" y="574" text-anchor="middle" fill="#7d8590" font-size="9">OKE · Terraform · IRSA</text>
-  <text x="112" y="590" text-anchor="middle" fill="#e36209" font-size="9" font-style="italic">→ próxima fase</text>
+  <!-- Oracle Cloud — Implementado via Terraform -->
+  <rect x="18" y="535" width="188" height="80" rx="8" fill="#161b22" stroke="#e36209" stroke-width="2"/>
+  <text x="112" y="558" text-anchor="middle" fill="#e36209" font-size="10" font-weight="bold">☁  ORACLE CLOUD — OKE</text>
+  <text x="112" y="575" text-anchor="middle" fill="#7d8590" font-size="9">k8s v1.32 · 2× Standard3.Flex</text>
+  <text x="112" y="589" text-anchor="middle" fill="#7d8590" font-size="9">terraform/00-foundation</text>
+  <text x="112" y="603" text-anchor="middle" fill="#7d8590" font-size="9">terraform/01-oke</text>
 
   <!-- Runbooks note -->
-  <rect x="18" y="625" width="188" height="55" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
-  <text x="112" y="645" text-anchor="middle" fill="#7d8590" font-size="9" font-weight="bold">📋  Runbooks</text>
-  <text x="112" y="660" text-anchor="middle" fill="#7d8590" font-size="9">high-error-rate.md</text>
-  <text x="112" y="673" text-anchor="middle" fill="#7d8590" font-size="9">high-latency.md</text>
+  <rect x="18" y="630" width="188" height="55" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="112" y="650" text-anchor="middle" fill="#7d8590" font-size="9" font-weight="bold">📋  Runbooks</text>
+  <text x="112" y="665" text-anchor="middle" fill="#7d8590" font-size="9">high-error-rate.md</text>
+  <text x="112" y="678" text-anchor="middle" fill="#7d8590" font-size="9">high-latency.md</text>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- CENTER — Kubernetes Cluster                            -->
@@ -73,7 +74,7 @@
 
   <!-- K8s outer box -->
   <rect x="232" y="74" width="948" height="590" rx="10" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
-  <text x="706" y="97" text-anchor="middle" fill="#7d8590" font-size="11">☸  Kubernetes — Minikube  ·  6 CPU  ·  8 GB RAM  ·  v1.30</text>
+  <text x="706" y="97" text-anchor="middle" fill="#7d8590" font-size="11">☸  Kubernetes — Minikube (dev local, v1.30)  ⇄  OKE (OCI São Paulo, v1.32)  ·  mesma stack, ambientes paralelos</text>
 
   <!-- ── namespace: default ── -->
   <rect x="250" y="108" width="912" height="138" rx="8" fill="#161b22" stroke="#388bfd" stroke-width="1.5" stroke-dasharray="5,3"/>
@@ -193,8 +194,8 @@
   <line x1="112" y1="328" x2="112" y2="345" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)"/>
   <!-- Git Specialist → GitHub -->
   <line x1="112" y1="419" x2="112" y2="448" stroke="#d2a8ff" stroke-width="1.5" marker-end="url(#arr-purple)"/>
-  <!-- GitHub → OCI (roadmap) -->
-  <line x1="112" y1="508" x2="112" y2="533" stroke="#e36209" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
+  <!-- GitHub → OCI (Terraform apply) -->
+  <line x1="112" y1="508" x2="112" y2="533" stroke="#e36209" stroke-width="1.5" marker-end="url(#arr-orange)"/>
 
   <!-- Claude Code → K8s cluster -->
   <line x1="206" y1="112" x2="248" y2="112" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)"/>
@@ -258,7 +259,7 @@
 
   <!-- Stack versions -->
   <text x="706" y="750" text-anchor="middle" fill="#484f58" font-size="9">
-    Kubernetes 1.30  ·  Prometheus 3.x  ·  Grafana 12.x  ·  Loki 3.6  ·  Alloy 1.x  ·  Go 1.22  ·  Claude Code agents
+    Kubernetes 1.30/1.32  ·  Prometheus 3.x  ·  Grafana 12.x  ·  Loki 3.6  ·  Alloy 1.x  ·  Go 1.22  ·  Terraform 1.7  ·  Claude Code agents
   </text>
 
 </svg>
