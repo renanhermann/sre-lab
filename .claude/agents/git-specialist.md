@@ -87,3 +87,5 @@ Refs: #issue ou link pro runbook relacionado
 - Se houver mudanças não relacionadas, separe em commits diferentes
 - Mensagens em português são aceitas neste projeto
 - Sempre rode `git status` ao final pra confirmar estado limpo
+- **NUNCA adicione `Co-Authored-By: Claude ...` nas mensagens de commit.**
+  Os commits são do autor humano. A ferramenta usada não vai no histórico.

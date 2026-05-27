@@ -27,3 +27,8 @@ charts/*.tgz
 
 # Binários Go compilados
 app/traffic-simulator
+
+# Notas pessoais (scripts de apresentação, talk tracks)
+docs/1on1-script.md
+docs/demo-script.md
+docs/talk-track-ia.md
