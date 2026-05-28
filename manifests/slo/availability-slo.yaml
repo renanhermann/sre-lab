@@ -1,0 +1,247 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: traffic-simulator-slo-availability
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    app: traffic-simulator
+    slo: availability
+spec:
+  groups:
+
+    # ─── Recording rules ──────────────────────────────────────────────────
+    # Pré-calcula o SLI (error ratio) em múltiplas janelas. As janelas curtas
+    # (5m/30m/2h/6h) servem ao "short window" do multi-burn-rate; as longas
+    # (1h/6h/1d/3d) ao "long window". /stress/.* é excluído porque é tráfego
+    # de chaos controlado — não consome error budget.
+    #
+    # Nota: o numerador (5xx) é envelopado em `or vector(0)` para retornar 0
+    # quando nenhum 5xx existir no range. Sem isso, a expressão "vetor vazio
+    # / escalar" produz vetor vazio e a recording rule fica sem dados durante
+    # o estado saudável — quebrando dashboards e o alerta BudgetExhausted.
+    - name: slo-availability-recording.rules
+      interval: 30s
+      rules:
+
+        - record: slo:availability:target
+          expr: vector(0.995)
+          labels:
+            service: traffic-simulator
+
+        - record: slo:availability:error_budget
+          expr: vector(0.005)
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_availability:error_ratio_rate5m
+          expr: |
+            (
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[5m]))
+              or vector(0)
+            )
+            /
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[5m]))
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_availability:error_ratio_rate30m
+          expr: |
+            (
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[30m]))
+              or vector(0)
+            )
+            /
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[30m]))
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_availability:error_ratio_rate1h
+          expr: |
+            (
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[1h]))
+              or vector(0)
+            )
+            /
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[1h]))
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_availability:error_ratio_rate2h
+          expr: |
+            (
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[2h]))
+              or vector(0)
+            )
+            /
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[2h]))
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_availability:error_ratio_rate6h
+          expr: |
+            (
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[6h]))
+              or vector(0)
+            )
+            /
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[6h]))
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_availability:error_ratio_rate1d
+          expr: |
+            (
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[1d]))
+              or vector(0)
+            )
+            /
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[1d]))
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_availability:error_ratio_rate3d
+          expr: |
+            (
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[3d]))
+              or vector(0)
+            )
+            /
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[3d]))
+          labels:
+            service: traffic-simulator
+
+        # Janela de 30d para cálculo de error budget consumido na "compliance window"
+        - record: slo:traffic_simulator_availability:error_ratio_rate30d
+          expr: |
+            (
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[30d]))
+              or vector(0)
+            )
+            /
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[30d]))
+          labels:
+            service: traffic-simulator
+
+        # SLI atual (positivo) na janela de 30d — usado em dashboards
+        - record: slo:traffic_simulator_availability:ratio_rate30d
+          expr: |
+            1 - slo:traffic_simulator_availability:error_ratio_rate30d
+          labels:
+            service: traffic-simulator
+
+        # Error budget restante (fração de 0 a 1). Negativo = já estourou.
+        - record: slo:traffic_simulator_availability:error_budget_remaining
+          expr: |
+            1 - (
+              slo:traffic_simulator_availability:error_ratio_rate30d
+              / on(service) group_left
+              slo:availability:error_budget
+            )
+          labels:
+            service: traffic-simulator
+
+    # ─── Alertas de burn rate (multi-window, multi-burn-rate) ─────────────
+    # Referência: Google SRE Workbook, cap. 5 — "Alerting on SLOs", tabela 5-1.
+    # Cada par (long window × short window) protege contra: queima rápida que
+    # exauriria o budget cedo, e ruído de janela curta isolada. Ambos
+    # precisam estar acima do threshold simultaneamente pra disparar.
+    - name: slo-availability-alerts.rules
+      interval: 30s
+      rules:
+
+        # Fast burn: queima 2% do budget em 1h → page imediato.
+        # 14.4x = (2% budget em 1h) / (100% budget em 30d × 1h/720h)
+        - alert: SLOAvailabilityFastBurn
+          expr: |
+            slo:traffic_simulator_availability:error_ratio_rate1h > (14.4 * 0.005)
+            and
+            slo:traffic_simulator_availability:error_ratio_rate5m > (14.4 * 0.005)
+          for: 2m
+          labels:
+            severity: critical
+            service: traffic-simulator
+            slo: availability
+            burn_rate: fast
+            page: "true"
+          annotations:
+            summary: "SLO availability — queima rápida (14.4x)"
+            description: |
+              Error ratio em 1h e 5m está acima de 7.2% (14.4× o budget de 0.5%).
+              Nesse ritmo, 2% do budget mensal queima em 1 hora.
+              Runbook: docs/runbooks/slo-burn-rate.md
+
+        # Medium burn: queima 5% do budget em 6h → page.
+        - alert: SLOAvailabilityMediumBurn
+          expr: |
+            slo:traffic_simulator_availability:error_ratio_rate6h > (6 * 0.005)
+            and
+            slo:traffic_simulator_availability:error_ratio_rate30m > (6 * 0.005)
+          for: 5m
+          labels:
+            severity: critical
+            service: traffic-simulator
+            slo: availability
+            burn_rate: medium
+            page: "true"
+          annotations:
+            summary: "SLO availability — queima média (6x)"
+            description: |
+              Error ratio em 6h e 30m está acima de 3% (6× o budget).
+              Nesse ritmo, 5% do budget mensal queima em 6 horas.
+              Runbook: docs/runbooks/slo-burn-rate.md
+
+        # Slow burn: queima 10% do budget em 1d → ticket.
+        - alert: SLOAvailabilitySlowBurn
+          expr: |
+            slo:traffic_simulator_availability:error_ratio_rate1d > (3 * 0.005)
+            and
+            slo:traffic_simulator_availability:error_ratio_rate2h > (3 * 0.005)
+          for: 15m
+          labels:
+            severity: warning
+            service: traffic-simulator
+            slo: availability
+            burn_rate: slow
+            page: "false"
+          annotations:
+            summary: "SLO availability — queima lenta (3x)"
+            description: |
+              Error ratio em 1d e 2h está acima de 1.5% (3× o budget).
+              Nesse ritmo, 10% do budget mensal queima em 1 dia.
+              Abrir ticket para investigação na próxima janela útil.
+
+        # Slowest burn: queima 10% do budget em 3d → ticket.
+        - alert: SLOAvailabilitySlowestBurn
+          expr: |
+            slo:traffic_simulator_availability:error_ratio_rate3d > (1 * 0.005)
+            and
+            slo:traffic_simulator_availability:error_ratio_rate6h > (1 * 0.005)
+          for: 1h
+          labels:
+            severity: warning
+            service: traffic-simulator
+            slo: availability
+            burn_rate: slowest
+            page: "false"
+          annotations:
+            summary: "SLO availability — degradação prolongada (1x)"
+            description: |
+              Error ratio em 3d e 6h está consistentemente acima de 0.5%.
+              Erosão lenta do budget — investigar tendência antes que vire incidente.
+
+        # Budget exaurido — informativo, não acionável imediatamente
+        - alert: SLOAvailabilityBudgetExhausted
+          expr: slo:traffic_simulator_availability:error_budget_remaining <= 0
+          for: 5m
+          labels:
+            severity: warning
+            service: traffic-simulator
+            slo: availability
+            page: "false"
+          annotations:
+            summary: "Error budget de disponibilidade esgotado"
+            description: |
+              O budget de 0.5% (≈3h36min/mês) foi consumido. Política:
+              congelar mudanças não-críticas e priorizar trabalho de
+              confiabilidade até o budget se recuperar.
