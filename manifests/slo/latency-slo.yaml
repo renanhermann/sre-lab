@@ -1,0 +1,220 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: traffic-simulator-slo-latency
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    app: traffic-simulator
+    slo: latency
+spec:
+  groups:
+
+    # ─── Recording rules ──────────────────────────────────────────────────
+    # SLI de latência é definido como "fração de requests servidas em
+    # ≤ 500ms" — não como histogram_quantile. Usar o bucket le="0.5"
+    # diretamente é numericamente estável em janelas longas e linear pra
+    # cálculo de burn rate, ao contrário do quantile que é estimado.
+    - name: slo-latency-recording.rules
+      interval: 30s
+      rules:
+
+        - record: slo:latency:target
+          expr: vector(0.99)
+          labels:
+            service: traffic-simulator
+
+        - record: slo:latency:error_budget
+          expr: vector(0.01)
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_latency:error_ratio_rate5m
+          expr: |
+            1 - (
+              sum(rate(traffic_simulator_request_duration_seconds_bucket{path!~"/stress/.*", le="0.5"}[5m]))
+              /
+              sum(rate(traffic_simulator_request_duration_seconds_count{path!~"/stress/.*"}[5m]))
+            )
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_latency:error_ratio_rate30m
+          expr: |
+            1 - (
+              sum(rate(traffic_simulator_request_duration_seconds_bucket{path!~"/stress/.*", le="0.5"}[30m]))
+              /
+              sum(rate(traffic_simulator_request_duration_seconds_count{path!~"/stress/.*"}[30m]))
+            )
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_latency:error_ratio_rate1h
+          expr: |
+            1 - (
+              sum(rate(traffic_simulator_request_duration_seconds_bucket{path!~"/stress/.*", le="0.5"}[1h]))
+              /
+              sum(rate(traffic_simulator_request_duration_seconds_count{path!~"/stress/.*"}[1h]))
+            )
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_latency:error_ratio_rate2h
+          expr: |
+            1 - (
+              sum(rate(traffic_simulator_request_duration_seconds_bucket{path!~"/stress/.*", le="0.5"}[2h]))
+              /
+              sum(rate(traffic_simulator_request_duration_seconds_count{path!~"/stress/.*"}[2h]))
+            )
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_latency:error_ratio_rate6h
+          expr: |
+            1 - (
+              sum(rate(traffic_simulator_request_duration_seconds_bucket{path!~"/stress/.*", le="0.5"}[6h]))
+              /
+              sum(rate(traffic_simulator_request_duration_seconds_count{path!~"/stress/.*"}[6h]))
+            )
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_latency:error_ratio_rate1d
+          expr: |
+            1 - (
+              sum(rate(traffic_simulator_request_duration_seconds_bucket{path!~"/stress/.*", le="0.5"}[1d]))
+              /
+              sum(rate(traffic_simulator_request_duration_seconds_count{path!~"/stress/.*"}[1d]))
+            )
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_latency:error_ratio_rate3d
+          expr: |
+            1 - (
+              sum(rate(traffic_simulator_request_duration_seconds_bucket{path!~"/stress/.*", le="0.5"}[3d]))
+              /
+              sum(rate(traffic_simulator_request_duration_seconds_count{path!~"/stress/.*"}[3d]))
+            )
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_latency:error_ratio_rate30d
+          expr: |
+            1 - (
+              sum(rate(traffic_simulator_request_duration_seconds_bucket{path!~"/stress/.*", le="0.5"}[30d]))
+              /
+              sum(rate(traffic_simulator_request_duration_seconds_count{path!~"/stress/.*"}[30d]))
+            )
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_latency:ratio_rate30d
+          expr: 1 - slo:traffic_simulator_latency:error_ratio_rate30d
+          labels:
+            service: traffic-simulator
+
+        - record: slo:traffic_simulator_latency:error_budget_remaining
+          expr: |
+            1 - (
+              slo:traffic_simulator_latency:error_ratio_rate30d
+              / on(service) group_left
+              slo:latency:error_budget
+            )
+          labels:
+            service: traffic-simulator
+
+    # ─── Alertas de burn rate ─────────────────────────────────────────────
+    # Mesma estrutura do SLO de disponibilidade — thresholds escalam pelo
+    # error budget de 1% (target 99%): cada burn rate × 0.01.
+    - name: slo-latency-alerts.rules
+      interval: 30s
+      rules:
+
+        - alert: SLOLatencyFastBurn
+          expr: |
+            slo:traffic_simulator_latency:error_ratio_rate1h > (14.4 * 0.01)
+            and
+            slo:traffic_simulator_latency:error_ratio_rate5m > (14.4 * 0.01)
+          for: 2m
+          labels:
+            severity: critical
+            service: traffic-simulator
+            slo: latency
+            burn_rate: fast
+            page: "true"
+          annotations:
+            summary: "SLO latency — queima rápida (14.4x)"
+            description: |
+              Mais de 14.4% das requests excedem 500ms em janelas de 1h e 5m.
+              Nesse ritmo, 2% do budget mensal queima em 1 hora.
+              Runbook: docs/runbooks/slo-burn-rate.md
+
+        - alert: SLOLatencyMediumBurn
+          expr: |
+            slo:traffic_simulator_latency:error_ratio_rate6h > (6 * 0.01)
+            and
+            slo:traffic_simulator_latency:error_ratio_rate30m > (6 * 0.01)
+          for: 5m
+          labels:
+            severity: critical
+            service: traffic-simulator
+            slo: latency
+            burn_rate: medium
+            page: "true"
+          annotations:
+            summary: "SLO latency — queima média (6x)"
+            description: |
+              Mais de 6% das requests excedem 500ms em janelas de 6h e 30m.
+              Nesse ritmo, 5% do budget mensal queima em 6 horas.
+
+        - alert: SLOLatencySlowBurn
+          expr: |
+            slo:traffic_simulator_latency:error_ratio_rate1d > (3 * 0.01)
+            and
+            slo:traffic_simulator_latency:error_ratio_rate2h > (3 * 0.01)
+          for: 15m
+          labels:
+            severity: warning
+            service: traffic-simulator
+            slo: latency
+            burn_rate: slow
+            page: "false"
+          annotations:
+            summary: "SLO latency — queima lenta (3x)"
+            description: |
+              Mais de 3% das requests excedem 500ms em janelas de 1d e 2h.
+              Abrir ticket para investigar degradação na próxima janela útil.
+
+        - alert: SLOLatencySlowestBurn
+          expr: |
+            slo:traffic_simulator_latency:error_ratio_rate3d > (1 * 0.01)
+            and
+            slo:traffic_simulator_latency:error_ratio_rate6h > (1 * 0.01)
+          for: 1h
+          labels:
+            severity: warning
+            service: traffic-simulator
+            slo: latency
+            burn_rate: slowest
+            page: "false"
+          annotations:
+            summary: "SLO latency — degradação prolongada (1x)"
+            description: |
+              Mais de 1% das requests excedem 500ms de forma sustentada em 3d e 6h.
+              Erosão lenta do budget — investigar tendência.
+
+        - alert: SLOLatencyBudgetExhausted
+          expr: slo:traffic_simulator_latency:error_budget_remaining <= 0
+          for: 5m
+          labels:
+            severity: warning
+            service: traffic-simulator
+            slo: latency
+            page: "false"
+          annotations:
+            summary: "Error budget de latência esgotado"
+            description: |
+              Budget de 1% (≈7h12min de tráfego lento/mês) foi consumido.
+              Congelar mudanças não-críticas e priorizar trabalho de
+              performance até o budget se recuperar.

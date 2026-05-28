@@ -8,9 +8,11 @@ Construído para demonstrar operação sênior: SLO, runbooks executáveis, chao
 | Camada | Tecnologia |
 |---|---|
 | K8s local | Minikube (profile: `sre-lab`, driver: docker) |
-| Métricas | Prometheus + Grafana + AlertManager |
+| K8s cloud | OKE (Oracle Kubernetes Engine) — provisionado via Terraform em `terraform/` |
+| Métricas | Prometheus + Grafana + AlertManager (kube-prometheus-stack) |
 | Logs | Loki + Alloy (coleta via K8s API) |
-| App de teste | `traffic-simulator` (Go) — gera carga, erros, latência |
+| Confiabilidade | SLO formal com burn rate alerts em `manifests/slo/` — ver `docs/slo.md` |
+| App de teste | `traffic-simulator` (Go) — RED + endpoints `/stress/*` e `/admin/fault` |
 | Agents | Claude Code (SRE Specialist, K8s Specialist, Git Specialist) |
 
 ## Como subir o lab
@@ -35,10 +37,14 @@ curl -X POST "http://localhost:8080/traffic/start?rps=5"
 # Para o gerador e retorna estatísticas
 curl -X POST http://localhost:8080/traffic/stop
 
-# Dispara alertas:
-curl -X POST http://localhost:8080/stress/error          # força HTTP 500 → HighErrorRate
-curl -X POST "http://localhost:8080/stress/latency?ms=2000"  # latência alta → HighLatencyP99
-curl -X POST "http://localhost:8080/stress/cpu?seconds=30"   # queima CPU → HPA escala
+# Dispara alertas RED do app (paths /stress/* — EXCLUÍDOS do SLI):
+curl -X POST http://localhost:8080/stress/error               # força HTTP 500 → HighErrorRate
+curl -X POST "http://localhost:8080/stress/latency?ms=2000"   # latência alta → HighLatencyP99
+curl -X POST "http://localhost:8080/stress/cpu?seconds=30"    # queima CPU → HPA escala
+
+# Chaos primitive — injeta 5xx em /health (caminho de produção, CONSOME error budget):
+curl -X POST "http://localhost:8080/admin/fault?rate=40&duration=10m"
+curl -X POST "http://localhost:8080/admin/fault?rate=0"       # desativa
 ```
 
 ## Agentes disponíveis
@@ -63,8 +69,15 @@ sre-lab/
 ├── app/                  # código Go do traffic-simulator
 ├── cluster/              # scripts start.sh e expose.sh
 ├── helm/                 # values dos Helm charts
-├── manifests/app/        # K8s manifests da app
-├── docs/runbooks/        # runbooks executáveis por agent
+├── manifests/
+│   ├── app/              # K8s manifests da app
+│   └── slo/              # PrometheusRules SLO + dashboard Grafana
+├── terraform/
+│   ├── 00-foundation/    # VCN, gateways, subnets
+│   └── 01-oke/           # cluster OKE + node pool
+├── docs/
+│   ├── slo.md            # SLO formal, burn rate, error budget policy
+│   └── runbooks/         # runbooks executáveis por agent
 └── .claude/agents/       # definições dos agents
 ```
 
@@ -84,10 +97,27 @@ histogram_quantile(0.99,
 )
 ```
 
+## Queries PromQL — SLO (Fase 3)
+
+```promql
+# SLI atual de disponibilidade (rolling 30d) — target 99.5%
+slo:traffic_simulator_availability:ratio_rate30d
+
+# Error budget restante (1.0 = 100% disponível, <= 0 = esgotado)
+slo:traffic_simulator_availability:error_budget_remaining
+
+# Estado bruto da expressão do alerta fast burn (sem aguardar 'for:')
+slo:traffic_simulator_availability:error_ratio_rate1h > (14.4 * 0.005)
+and
+slo:traffic_simulator_availability:error_ratio_rate5m > (14.4 * 0.005)
+```
+
 ## Próximos passos (roadmap)
 
-- [ ] SLO formal com error budget e burn rate alerts
-- [ ] Migração pra Oracle Cloud (OKE) via Terraform
-- [ ] Chaos test com endpoints de stress automatizados
-- [ ] FinOps dashboard (custo por namespace)
-- [ ] Postmortem automatizado via Git Specialist
+- [x] Fase 1 — Cluster local + observabilidade + agents
+- [x] Fase 2 — Provisionamento OKE via Terraform
+- [x] Fase 3 — SLO formal com error budget e burn rate alerts
+- [ ] Fase 4 — Replicar stack Minikube → OKE (Helm + manifests + SLO)
+- [ ] Fase 4 — Chaos test automatizado (CI: fault + validate alert + recover)
+- [ ] Fase 4 — FinOps dashboard (custo por namespace)
+- [ ] Fase 4 — Postmortem automatizado via Git Specialist

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"runtime"
@@ -89,10 +90,111 @@ func writeJSON(w http.ResponseWriter, code int, v any) {
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
 // GET /health — liveness e readiness probe do Kubernetes
+//
+// Quando o chaos primitive /admin/fault está ativo, esta handler injeta 5xx
+// numa taxa controlada. A injeção entra no path "/health" (caminho de
+// produção) e portanto consome error budget do SLO de disponibilidade —
+// ao contrário de /stress/error, que é excluído do SLI por design.
 func handleHealth(w http.ResponseWriter, r *http.Request) {
+	if rate := faultRate.Load(); rate > 0 {
+		if rand.IntN(100) < int(rate) {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{
+				"status": "error",
+				"reason": "fault injection active",
+			})
+			return
+		}
+	}
 	writeJSON(w, http.StatusOK, map[string]string{
 		"status": "ok",
 		"time":   time.Now().UTC().Format(time.RFC3339),
+	})
+}
+
+// ── Chaos primitive: injeção de falha em /health ─────────────────────────────
+//
+// faultRate guarda a taxa atual (0-100) de requests a /health que devem
+// retornar 5xx. Cada chamada a POST /admin/fault sobrescreve a anterior.
+// Um timer separado faz auto-reset após `duration` — failsafe pra não
+// deixar o cluster em modo degradado se o operador esquecer.
+var (
+	faultRate   atomic.Int64
+	faultMu     sync.Mutex
+	faultCancel context.CancelFunc
+)
+
+// POST /admin/fault?rate=N&duration=Xs
+//
+// rate     — % de requests a /health a falhar (0-100, default 20)
+// duration — quanto tempo manter ativo (default 5m, máx 30m)
+//
+// rate=0 desativa imediatamente. Cap de 30min é safety: este é um
+// laboratório, não um chaos game day em produção.
+func handleFault(w http.ResponseWriter, r *http.Request) {
+	rate := 20
+	if v := r.URL.Query().Get("rate"); v != "" {
+		fmt.Sscanf(v, "%d", &rate)
+	}
+	if rate < 0 {
+		rate = 0
+	}
+	if rate > 100 {
+		rate = 100
+	}
+
+	duration := 5 * time.Minute
+	if v := r.URL.Query().Get("duration"); v != "" {
+		if d, err := time.ParseDuration(v); err == nil {
+			duration = d
+		}
+	}
+	if duration > 30*time.Minute {
+		duration = 30 * time.Minute
+	}
+
+	faultMu.Lock()
+	defer faultMu.Unlock()
+
+	// cancela timer anterior antes de configurar um novo
+	if faultCancel != nil {
+		faultCancel()
+		faultCancel = nil
+	}
+
+	faultRate.Store(int64(rate))
+
+	if rate == 0 {
+		slog.Warn("fault injection desativada manualmente")
+		writeJSON(w, http.StatusOK, map[string]string{"status": "disabled"})
+		return
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	faultCancel = cancel
+	go func() {
+		select {
+		case <-time.After(duration):
+			faultRate.Store(0)
+			faultMu.Lock()
+			faultCancel = nil
+			faultMu.Unlock()
+			slog.Warn("fault injection expirou (auto-reset)")
+		case <-ctx.Done():
+			return
+		}
+	}()
+
+	slog.Warn("fault injection ativada",
+		"rate_pct", rate,
+		"duration", duration,
+		"target_path", "/health",
+	)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":     "enabled",
+		"rate_pct":   rate,
+		"duration":   duration.String(),
+		"expires_at": time.Now().Add(duration).UTC().Format(time.RFC3339),
+		"target":     "/health",
 	})
 }
 
@@ -309,6 +411,13 @@ func main() {
 	// Gerador de tráfego
 	mux.HandleFunc("POST /traffic/start", instrument("/traffic/start", handleTrafficStart))
 	mux.HandleFunc("POST /traffic/stop", instrument("/traffic/stop", handleTrafficStop))
+
+	// Chaos primitive — controle de fault injection.
+	// O endpoint /admin/fault em si retorna 200 (acks de controle); quem
+	// retorna 5xx é o /health, que está no caminho de produção e portanto
+	// conta no SLI. Isso é proposital: queremos que o chaos consuma error
+	// budget de verdade, pra exercitar burn rate alerts honestamente.
+	mux.HandleFunc("POST /admin/fault", instrument("/admin/fault", handleFault))
 
 	port := os.Getenv("PORT")
 	if port == "" {

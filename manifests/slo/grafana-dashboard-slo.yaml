@@ -1,0 +1,447 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traffic-simulator-slo-dashboard
+  namespace: monitoring
+  labels:
+    # Sidecar do kube-prometheus-stack lê ConfigMaps com este label e
+    # importa o JSON automaticamente como dashboard no Grafana.
+    grafana_dashboard: "1"
+  annotations:
+    # Pasta onde o dashboard aparece no Grafana — criada se não existir.
+    grafana_folder: "SLO"
+data:
+  traffic-simulator-slo.json: |
+    {
+      "uid": "ts-slo",
+      "title": "SLO — traffic-simulator",
+      "tags": ["slo", "traffic-simulator", "sre-lab"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "refresh": "30s",
+      "time": { "from": "now-6h", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "datasource",
+            "type": "datasource",
+            "query": "prometheus",
+            "current": { "text": "Prometheus", "value": "Prometheus" },
+            "hide": 0
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "row",
+          "title": "Disponibilidade — SLO 99.5%",
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "collapsed": false
+        },
+        {
+          "id": 10,
+          "type": "stat",
+          "title": "SLO Target",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "slo:availability:target", "refId": "A", "legendFormat": "target" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "decimals": 2,
+              "color": { "mode": "fixed", "fixedColor": "blue" }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value"
+          }
+        },
+        {
+          "id": 11,
+          "type": "stat",
+          "title": "SLI atual (30d rolling)",
+          "gridPos": { "h": 4, "w": 5, "x": 4, "y": 1 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "slo:traffic_simulator_availability:ratio_rate30d", "refId": "A", "legendFormat": "SLI 30d" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "decimals": 4,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "orange", "value": 0.99 },
+                  { "color": "green", "value": 0.995 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "area",
+            "textMode": "value_and_name"
+          }
+        },
+        {
+          "id": 12,
+          "type": "gauge",
+          "title": "Error budget restante",
+          "description": "Fração do budget mensal ainda disponível. Negativo = budget estourado (política de freeze ativa).",
+          "gridPos": { "h": 4, "w": 5, "x": 9, "y": 1 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "slo:traffic_simulator_availability:error_budget_remaining", "refId": "A" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "min": -1,
+              "max": 1,
+              "decimals": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "dark-red", "value": null },
+                  { "color": "red", "value": 0 },
+                  { "color": "orange", "value": 0.2 },
+                  { "color": "green", "value": 0.5 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "showThresholdLabels": true,
+            "showThresholdMarkers": true
+          }
+        },
+        {
+          "id": 13,
+          "type": "stat",
+          "title": "Error rate atual (5m)",
+          "gridPos": { "h": 4, "w": 5, "x": 14, "y": 1 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "slo:traffic_simulator_availability:error_ratio_rate5m", "refId": "A" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 0.005 },
+                  { "color": "red", "value": 0.072 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "area"
+          }
+        },
+        {
+          "id": 14,
+          "type": "stat",
+          "title": "Tráfego de produção (req/s)",
+          "gridPos": { "h": 4, "w": 5, "x": 19, "y": 1 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "sum(rate(traffic_simulator_requests_total{path!~\"/stress/.*\"}[5m]))", "refId": "A" }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "reqps", "decimals": 2 }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "area"
+          }
+        },
+        {
+          "id": 20,
+          "type": "timeseries",
+          "title": "Error ratio por janela (com thresholds de burn rate)",
+          "gridPos": { "h": 8, "w": 16, "x": 0, "y": 5 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "slo:traffic_simulator_availability:error_ratio_rate5m", "refId": "A", "legendFormat": "5m (short window fast)" },
+            { "expr": "slo:traffic_simulator_availability:error_ratio_rate30m", "refId": "B", "legendFormat": "30m (short window medium)" },
+            { "expr": "slo:traffic_simulator_availability:error_ratio_rate1h", "refId": "C", "legendFormat": "1h (long window fast)" },
+            { "expr": "slo:traffic_simulator_availability:error_ratio_rate6h", "refId": "D", "legendFormat": "6h (long window medium)" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 5,
+                "thresholdsStyle": { "mode": "dashed+area" }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 0.005 },
+                  { "color": "orange", "value": 0.03 },
+                  { "color": "red", "value": 0.072 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "legend": { "displayMode": "table", "calcs": ["lastNotNull", "max"], "placement": "bottom" },
+            "tooltip": { "mode": "multi" }
+          }
+        },
+        {
+          "id": 21,
+          "type": "stat",
+          "title": "Estado dos burn rate alerts",
+          "description": "Estado atual de cada alerta de burn rate. Usa `last` (não lastNotNull) + `or vector(0)` na query — se ALERTS some, força 0 = OK em vez de mostrar último valor obsoleto.",
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 5 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "max(ALERTS{slo=\"availability\", alertname=\"SLOAvailabilityFastBurn\", alertstate=\"firing\"}) or vector(0)", "refId": "A", "legendFormat": "Fast (page)" },
+            { "expr": "max(ALERTS{slo=\"availability\", alertname=\"SLOAvailabilityMediumBurn\", alertstate=\"firing\"}) or vector(0)", "refId": "B", "legendFormat": "Medium (page)" },
+            { "expr": "max(ALERTS{slo=\"availability\", alertname=\"SLOAvailabilitySlowBurn\", alertstate=\"firing\"}) or vector(0)", "refId": "C", "legendFormat": "Slow (ticket)" },
+            { "expr": "max(ALERTS{slo=\"availability\", alertname=\"SLOAvailabilitySlowestBurn\", alertstate=\"firing\"}) or vector(0)", "refId": "D", "legendFormat": "Slowest (ticket)" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                { "type": "value", "options": { "0": { "text": "OK", "color": "green" } } },
+                { "type": "value", "options": { "1": { "text": "FIRING", "color": "red" } } }
+              ],
+              "noValue": "OK"
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["last"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value_and_name",
+            "orientation": "vertical"
+          }
+        },
+        {
+          "id": 2,
+          "type": "row",
+          "title": "Latência — SLO 99% das requests ≤ 500ms",
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+          "collapsed": false
+        },
+        {
+          "id": 30,
+          "type": "stat",
+          "title": "SLO Target",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 14 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "slo:latency:target", "refId": "A" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "decimals": 2,
+              "color": { "mode": "fixed", "fixedColor": "blue" }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "none"
+          }
+        },
+        {
+          "id": 31,
+          "type": "stat",
+          "title": "SLI atual (30d rolling)",
+          "gridPos": { "h": 4, "w": 5, "x": 4, "y": 14 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "slo:traffic_simulator_latency:ratio_rate30d", "refId": "A" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "decimals": 4,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "orange", "value": 0.97 },
+                  { "color": "green", "value": 0.99 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "area"
+          }
+        },
+        {
+          "id": 32,
+          "type": "gauge",
+          "title": "Error budget restante",
+          "description": "Fração do budget mensal ainda disponível. Negativo = budget estourado (política de freeze ativa).",
+          "gridPos": { "h": 4, "w": 5, "x": 9, "y": 14 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "slo:traffic_simulator_latency:error_budget_remaining", "refId": "A" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "min": -1,
+              "max": 1,
+              "decimals": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "dark-red", "value": null },
+                  { "color": "red", "value": 0 },
+                  { "color": "orange", "value": 0.2 },
+                  { "color": "green", "value": 0.5 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "showThresholdLabels": true,
+            "showThresholdMarkers": true
+          }
+        },
+        {
+          "id": 33,
+          "type": "stat",
+          "title": "% requests > 500ms (5m)",
+          "gridPos": { "h": 4, "w": 5, "x": 14, "y": 14 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "slo:traffic_simulator_latency:error_ratio_rate5m", "refId": "A" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 0.01 },
+                  { "color": "red", "value": 0.144 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "area"
+          }
+        },
+        {
+          "id": 34,
+          "type": "stat",
+          "title": "P99 latência (referência)",
+          "gridPos": { "h": 4, "w": 5, "x": 19, "y": 14 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "histogram_quantile(0.99, sum(rate(traffic_simulator_request_duration_seconds_bucket{path!~\"/stress/.*\"}[5m])) by (le))", "refId": "A" }
+          ],
+          "fieldConfig": {
+            "defaults": { "unit": "s", "decimals": 3 }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "area"
+          }
+        },
+        {
+          "id": 40,
+          "type": "timeseries",
+          "title": "Latency error ratio por janela",
+          "gridPos": { "h": 8, "w": 16, "x": 0, "y": 18 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "slo:traffic_simulator_latency:error_ratio_rate5m", "refId": "A", "legendFormat": "5m" },
+            { "expr": "slo:traffic_simulator_latency:error_ratio_rate30m", "refId": "B", "legendFormat": "30m" },
+            { "expr": "slo:traffic_simulator_latency:error_ratio_rate1h", "refId": "C", "legendFormat": "1h" },
+            { "expr": "slo:traffic_simulator_latency:error_ratio_rate6h", "refId": "D", "legendFormat": "6h" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 5,
+                "thresholdsStyle": { "mode": "dashed+area" }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 0.01 },
+                  { "color": "orange", "value": 0.06 },
+                  { "color": "red", "value": 0.144 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "legend": { "displayMode": "table", "calcs": ["lastNotNull", "max"], "placement": "bottom" },
+            "tooltip": { "mode": "multi" }
+          }
+        },
+        {
+          "id": 41,
+          "type": "stat",
+          "title": "Estado dos burn rate alerts",
+          "description": "Estado atual de cada alerta de burn rate. Usa `last` (não lastNotNull) + `or vector(0)` na query — se ALERTS some, força 0 = OK em vez de mostrar último valor obsoleto.",
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 18 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "targets": [
+            { "expr": "max(ALERTS{slo=\"latency\", alertname=\"SLOLatencyFastBurn\", alertstate=\"firing\"}) or vector(0)", "refId": "A", "legendFormat": "Fast (page)" },
+            { "expr": "max(ALERTS{slo=\"latency\", alertname=\"SLOLatencyMediumBurn\", alertstate=\"firing\"}) or vector(0)", "refId": "B", "legendFormat": "Medium (page)" },
+            { "expr": "max(ALERTS{slo=\"latency\", alertname=\"SLOLatencySlowBurn\", alertstate=\"firing\"}) or vector(0)", "refId": "C", "legendFormat": "Slow (ticket)" },
+            { "expr": "max(ALERTS{slo=\"latency\", alertname=\"SLOLatencySlowestBurn\", alertstate=\"firing\"}) or vector(0)", "refId": "D", "legendFormat": "Slowest (ticket)" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                { "type": "value", "options": { "0": { "text": "OK", "color": "green" } } },
+                { "type": "value", "options": { "1": { "text": "FIRING", "color": "red" } } }
+              ],
+              "noValue": "OK"
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["last"] },
+            "colorMode": "background",
+            "textMode": "value_and_name",
+            "orientation": "vertical"
+          }
+        }
+      ]
+    }
