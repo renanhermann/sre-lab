@@ -53,6 +53,20 @@ e quatro classes de burn rate alerts (Google SRE Workbook, cap 5):
 Dashboard: **SLO — traffic-simulator** no Grafana.
 Documento formal e playbook de validação: [`docs/slo.md`](docs/slo.md).
 
+## Chaos test automatizado
+
+Validação end-to-end do pipeline de SLO (recording rules → burn rate
+alerts → recuperação) com pass/fail determinístico:
+
+```bash
+make chaos-baseline    # ~5s   — só valida que sistema está saudável
+make chaos-quick       # ~5min — fault → confirma firing (sem recovery)
+make chaos-test        # ~10-15min — ciclo completo, retorna pass/fail
+```
+
+Documento de uso, parâmetros, códigos de saída e plano de integração CI:
+[`docs/chaos-testing.md`](docs/chaos-testing.md).
+
 ## Gerando carga e disparando alertas
 
 ```bash
@@ -123,6 +137,10 @@ sre-lab/
 ├── manifests/
 │   ├── app/              # Deployment, Service, HPA, PDB, ServiceMonitor, PrometheusRule
 │   └── slo/              # SLO availability + latency + dashboard Grafana
+├── scripts/
+│   ├── chaos-test.sh     # validação automatizada do pipeline de SLO
+│   └── lib/              # log, prom, app helpers
+├── Makefile              # make help — atalhos de cluster/app/SLO/chaos
 ├── terraform/
 │   ├── 00-foundation/    # VCN e network
 │   ├── 01-oke/           # cluster OKE
@@ -130,6 +148,7 @@ sre-lab/
 ├── docs/
 │   ├── architecture.svg  # diagrama da arquitetura
 │   ├── slo.md            # SLO formal: definições, burn rate, error budget policy
+│   ├── chaos-testing.md  # validação automatizada do pipeline de SLO
 │   └── runbooks/         # runbooks executáveis por agent
 └── .claude/agents/       # definições dos agents Claude Code
 ```
@@ -144,7 +163,8 @@ sre-lab/
 - [x] **Fase 3** — SLO formal com error budget e burn rate alerts (4 janelas)
 - [x] **Fase 3** — Chaos primitive `/admin/fault` para validar SLO
 - [x] **Fase 3** — Dashboard Grafana de SLO (ConfigMap auto-importado)
-- [ ] **Fase 4** — Replicar stack Minikube no OKE (Helm + manifests + SLO)
-- [ ] **Fase 4** — Chaos test automatizado (script CI dispara fault + valida alerta + recupera)
-- [ ] **Fase 4** — FinOps dashboard (custo por namespace)
+- [x] **Fase 4** — Chaos test automatizado (`make chaos-test`, validação end-to-end)
+- [ ] **Fase 4** — Workflow GitHub Actions executando chaos test em PR
 - [ ] **Fase 4** — Postmortem automatizado via git-specialist agent
+- [ ] **Fase 4** — Replicar stack Minikube no OKE (Helm + manifests + SLO)
+- [ ] **Fase 4** — FinOps dashboard (custo por namespace)
