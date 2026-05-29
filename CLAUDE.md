@@ -72,11 +72,16 @@ sre-lab/
 ├── manifests/
 │   ├── app/              # K8s manifests da app
 │   └── slo/              # PrometheusRules SLO + dashboard Grafana
+├── scripts/
+│   ├── chaos-test.sh     # validação automatizada do pipeline de SLO
+│   └── lib/              # log/prom/app helpers (bash 3.2-compatível)
+├── Makefile              # atalhos cluster/app/SLO/chaos (make help)
 ├── terraform/
 │   ├── 00-foundation/    # VCN, gateways, subnets
 │   └── 01-oke/           # cluster OKE + node pool
 ├── docs/
 │   ├── slo.md            # SLO formal, burn rate, error budget policy
+│   ├── chaos-testing.md  # validação automatizada do pipeline de SLO
 │   └── runbooks/         # runbooks executáveis por agent
 └── .claude/agents/       # definições dos agents
 ```
@@ -117,7 +122,8 @@ slo:traffic_simulator_availability:error_ratio_rate5m > (14.4 * 0.005)
 - [x] Fase 1 — Cluster local + observabilidade + agents
 - [x] Fase 2 — Provisionamento OKE via Terraform
 - [x] Fase 3 — SLO formal com error budget e burn rate alerts
-- [ ] Fase 4 — Replicar stack Minikube → OKE (Helm + manifests + SLO)
-- [ ] Fase 4 — Chaos test automatizado (CI: fault + validate alert + recover)
-- [ ] Fase 4 — FinOps dashboard (custo por namespace)
+- [x] Fase 4 — Chaos test automatizado (`make chaos-test`, validação end-to-end)
+- [ ] Fase 4 — Workflow GitHub Actions executando chaos test em PR
 - [ ] Fase 4 — Postmortem automatizado via Git Specialist
+- [ ] Fase 4 — Replicar stack Minikube → OKE (Helm + manifests + SLO)
+- [ ] Fase 4 — FinOps dashboard (custo por namespace)
