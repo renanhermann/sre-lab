@@ -1,0 +1,143 @@
+name: chaos-test
+
+# Roda o chaos test do SLO toda vez que alguém mexer em:
+# - código da app (que produz as métricas)
+# - manifests do K8s da app
+# - manifests de SLO (recording rules e alertas)
+# - scripts ou Makefile que orquestram o teste
+# - este próprio workflow ou os values de CI do kube-prometheus-stack
+#
+# Roda também no push pro main como sanity garantido pós-merge.
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'manifests/**'
+      - 'scripts/**'
+      - 'Makefile'
+      - 'helm/kube-prometheus-stack-ci-values.yaml'
+      - '.github/workflows/chaos-test.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'manifests/**'
+      - 'scripts/**'
+      - 'Makefile'
+      - 'helm/kube-prometheus-stack-ci-values.yaml'
+      - '.github/workflows/chaos-test.yml'
+  workflow_dispatch: {}      # permite disparar manualmente da UI do GitHub
+
+jobs:
+  chaos-test:
+    name: Validar pipeline SLO end-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 25       # margem confortável pro stack + chaos-quick
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Minikube
+        # Sobe cluster K8s dentro do runner. Mesma versão usada localmente
+        # (v1.30.0) pra evitar divergências de comportamento.
+        uses: medyagh/setup-minikube@latest
+        with:
+          kubernetes-version: v1.30.0
+          driver: docker
+          cpus: 2
+          memory: 6000        # 6 GB do total de 7 disponíveis no runner
+
+      - name: Build da imagem do traffic-simulator
+        # Builda DENTRO do daemon do Minikube pra evitar `docker push`
+        # de tudo. O Deployment usa imagePullPolicy: Never por isso.
+        run: |
+          eval $(minikube docker-env)
+          docker build -t sre-lab/traffic-simulator:latest ./app
+          docker image ls sre-lab/traffic-simulator
+
+      - name: Instalar Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.2
+
+      - name: Instalar kube-prometheus-stack (values de CI)
+        # Stack mínima — só Prometheus + Operator. Sem Grafana, sem
+        # AlertManager, sem persistência. O chaos test só precisa da
+        # API do Prometheus em /api/v1/{query,alerts}.
+        run: |
+          kubectl create namespace monitoring
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+          helm install kube-prometheus-stack \
+            prometheus-community/kube-prometheus-stack \
+            --namespace monitoring \
+            --values helm/kube-prometheus-stack-ci-values.yaml \
+            --wait --timeout 10m
+
+      - name: Aplicar manifests da app + SLOs
+        run: |
+          kubectl apply -f manifests/app/
+          kubectl apply -f manifests/slo/
+          # Espera o Prometheus discovery pegar o ServiceMonitor da app
+          # e o operator publicar as PrometheusRules. 30s é folga.
+          sleep 30
+
+      - name: Esperar pods do traffic-simulator ficarem prontos
+        run: |
+          kubectl wait --for=condition=available deployment/traffic-simulator \
+            --timeout=180s
+          kubectl get pods -l app=traffic-simulator
+
+      - name: Confirmar que recording rules SLO carregaram no Prometheus
+        # Sem isso, o chaos test ia falhar no baseline check com NaN
+        # confundido como degradação.
+        run: |
+          kubectl -n monitoring port-forward svc/kube-prometheus-stack-prometheus 9090:9090 &
+          PF=$!
+          sleep 5
+          # Conta quantas rules do grupo slo-availability-recording.rules
+          # estão carregadas. Esperado: 12 (target, budget, ratio_rate*).
+          loaded=$(curl -sf http://localhost:9090/api/v1/rules \
+            | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          n = sum(len(g['rules']) for g in d['data']['groups']
+                  if 'slo' in g['name'].lower())
+          print(n)
+          ")
+          echo "SLO rules carregadas: $loaded"
+          test "$loaded" -ge 20 || { echo 'esperado >= 20 rules'; exit 1; }
+          kill $PF 2>/dev/null || true
+
+      - name: Rodar chaos test (modo quick, sem recovery)
+        # Pulando recovery pra fechar em ~5min em vez de ~10. Recovery é
+        # exercitado no `make chaos-test` local, mas em CI prioridade é
+        # detectar regressão rápido — não estressar wall time.
+        env:
+          NO_COLOR: "1"      # log sem códigos ANSI no GitHub UI
+        run: make chaos-quick
+
+      - name: Coletar diagnósticos no caso de falha
+        if: failure()
+        run: |
+          echo "── Pods ──"
+          kubectl get pods -A -o wide
+          echo ""
+          echo "── Eventos recentes (default) ──"
+          kubectl get events --sort-by='.lastTimestamp' | tail -30
+          echo ""
+          echo "── Logs do traffic-simulator ──"
+          kubectl logs --tail=200 -l app=traffic-simulator || true
+          echo ""
+          echo "── Logs do Prometheus ──"
+          kubectl -n monitoring logs --tail=100 \
+            statefulset/prometheus-kube-prometheus-stack-prometheus \
+            -c prometheus || true
+          echo ""
+          echo "── Estado dos alertas SLO ──"
+          kubectl -n monitoring port-forward \
+            svc/kube-prometheus-stack-prometheus 9090:9090 &
+          sleep 3
+          curl -sf http://localhost:9090/api/v1/alerts \
+            | python3 -m json.tool || true

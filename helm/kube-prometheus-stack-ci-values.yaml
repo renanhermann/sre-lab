@@ -1,0 +1,102 @@
+# kube-prometheus-stack — values otimizados pra CI (GitHub Actions).
+#
+# Diferenças em relação ao perfil local (kube-prometheus-stack-values.yaml):
+# - Grafana desabilitado: chaos test usa só a API do Prometheus
+# - AlertManager desabilitado: o estado de firing já está em `ALERTS{}`
+#   exposto pelo Prometheus; AlertManager só seria necessário pra rotear
+#   notificação, o que não importa em CI
+# - Persistência desligada: PVCs lentos em runner free-tier, e o cluster
+#   é descartado ao fim do job
+# - Sem node-exporter / kube-state-metrics: o SLI da app não depende deles
+# - Retention curtíssima (1h): suficiente pro chaos-quick rolar e mais
+#   um pouco de margem; reduz pressão de memória do Prometheus
+# - Recursos mais apertados pra caber em runner ubuntu-latest (2 CPU/7GB)
+#
+# Quando rodar em runner com mais recurso, vale subir os limits.
+
+grafana:
+  enabled: false
+
+alertmanager:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    retention: 1h
+    resources:
+      requests:
+        cpu: 100m
+        memory: 400Mi
+      limits:
+        cpu: 1000m
+        memory: 1.5Gi
+    storageSpec: null
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      cpu: 200m
+      memory: 200Mi
+
+kube-state-metrics:
+  enabled: false
+
+nodeExporter:
+  enabled: false
+
+# Componentes do controle-plane do K8s que não importam pro SLI da app —
+# desabilitar reduz cardinalidade e RAM do Prometheus.
+defaultRules:
+  rules:
+    alertmanager: false
+    etcd: false
+    configReloaders: false
+    general: true
+    k8s: false
+    kubeApiserverAvailability: false
+    kubeApiserverBurnrate: false
+    kubeApiserverHistogram: false
+    kubeApiserverSlos: false
+    kubeControllerManager: false
+    kubelet: false
+    kubeProxy: false
+    kubePrometheusGeneral: false
+    kubePrometheusNodeRecording: false
+    kubernetesApps: false
+    kubernetesResources: false
+    kubernetesStorage: false
+    kubernetesSystem: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    kubeStateMetrics: false
+    network: false
+    node: false
+    nodeExporterAlerting: false
+    nodeExporterRecording: false
+    prometheus: false
+    prometheusOperator: false
+
+# Exporters de control-plane também desabilitados — não conseguem scrape
+# em Minikube/kind e ficam gerando ruído de alertas.
+kubeApiServer:
+  enabled: false
+kubelet:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+coreDns:
+  enabled: false
+kubeDns:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false

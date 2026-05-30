@@ -1,9 +1,17 @@
 # SRE Lab
 
+[![chaos-test](https://github.com/renanhermann/sre-lab/actions/workflows/chaos-test.yml/badge.svg)](https://github.com/renanhermann/sre-lab/actions/workflows/chaos-test.yml)
+
 Laboratório pessoal de SRE com Kubernetes, observabilidade completa, SLO
 formal com burn rate alerts, infraestrutura como código no Oracle Cloud
 e agents Claude Code. Construído para demonstrar operação sênior: SLI/SLO,
 runbooks executáveis, GitOps, chaos engineering e cloud provisioning.
+
+O repo é **self-validating**: toda mudança em código da app, manifests
+SLO ou scripts de chaos dispara o workflow `chaos-test` no GitHub Actions,
+que sobe um cluster Kubernetes do zero, aplica todos os manifests e roda
+o teste de injeção de falha. Se o pipeline de detecção de incidentes
+regredir, o PR é bloqueado.
 
 ## Arquitetura
 
@@ -66,6 +74,22 @@ make chaos-test        # ~10-15min — ciclo completo, retorna pass/fail
 
 Documento de uso, parâmetros, códigos de saída e plano de integração CI:
 [`docs/chaos-testing.md`](docs/chaos-testing.md).
+
+## Integração contínua
+
+O workflow [`chaos-test.yml`](.github/workflows/chaos-test.yml) executa
+em todo PR que toque código da app, manifests ou scripts:
+
+1. Sobe Minikube no runner (v1.30.0, 2 CPU / 6 GB)
+2. Builda a imagem do `traffic-simulator` no daemon do Minikube
+3. Instala kube-prometheus-stack com [values otimizados para CI](helm/kube-prometheus-stack-ci-values.yaml) (sem Grafana, AlertManager, persistência ou dashboards de cluster)
+4. Aplica manifests da app e dos SLOs
+5. Confirma que as 24 recording rules carregaram no Prometheus
+6. Roda `make chaos-quick` — fault injection, espera firing, valida métricas
+7. Em caso de falha, anexa logs de pods, eventos e estado dos alertas
+
+Tempo médio: ~10-12 minutos. Roda também no push pro `main` como rede de
+segurança pós-merge.
 
 ## Gerando carga e disparando alertas
 
@@ -132,8 +156,9 @@ sre-lab/
 │   ├── main.go           # servidor HTTP + métricas RED + chaos primitives
 │   ├── Dockerfile        # multi-stage build (scratch ~8MB)
 │   └── go.mod
+├── .github/workflows/    # chaos-test.yml — CI que valida o pipeline SLO em PR
 ├── cluster/              # start.sh + expose.sh do Minikube
-├── helm/                 # values: kube-prometheus-stack, loki, alloy
+├── helm/                 # values: kube-prom-stack (local + CI), loki, alloy
 ├── manifests/
 │   ├── app/              # Deployment, Service, HPA, PDB, ServiceMonitor, PrometheusRule
 │   └── slo/              # SLO availability + latency + dashboard Grafana
@@ -164,7 +189,7 @@ sre-lab/
 - [x] **Fase 3** — Chaos primitive `/admin/fault` para validar SLO
 - [x] **Fase 3** — Dashboard Grafana de SLO (ConfigMap auto-importado)
 - [x] **Fase 4** — Chaos test automatizado (`make chaos-test`, validação end-to-end)
-- [ ] **Fase 4** — Workflow GitHub Actions executando chaos test em PR
+- [x] **Fase 4** — Workflow GitHub Actions executando chaos test em PR
 - [ ] **Fase 4** — Postmortem automatizado via git-specialist agent
 - [ ] **Fase 4** — Replicar stack Minikube no OKE (Helm + manifests + SLO)
 - [ ] **Fase 4** — FinOps dashboard (custo por namespace)
