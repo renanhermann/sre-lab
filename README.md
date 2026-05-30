@@ -167,9 +167,11 @@ sre-lab/
 ├── .github/workflows/    # chaos-test.yml — CI que valida o pipeline SLO em PR
 ├── cluster/              # start.sh + expose.sh do Minikube
 ├── helm/                 # values: kube-prom-stack (local + CI), loki, alloy
+│   └── oke/              # values adaptados pra OKE (StorageClass oci-bv, ClusterIP)
 ├── manifests/
 │   ├── app/              # Deployment, Service, HPA, PDB, ServiceMonitor, PrometheusRule
-│   └── slo/              # SLO availability + latency + dashboard Grafana
+│   ├── slo/              # SLO availability + latency + dashboard Grafana
+│   └── oke/              # deployment do app adaptado pro OCIR + ImagePullSecret
 ├── scripts/
 │   ├── chaos-test.sh     # validação automatizada do pipeline de SLO
 │   └── lib/              # log, prom, app helpers
@@ -182,6 +184,7 @@ sre-lab/
 │   ├── architecture.svg  # diagrama da arquitetura
 │   ├── slo.md            # SLO formal: definições, burn rate, error budget policy
 │   ├── chaos-testing.md  # validação automatizada do pipeline de SLO
+│   ├── oke-deployment.md # guia ponta a ponta da replicação Minikube → OKE
 │   └── runbooks/         # runbooks executáveis por agent
 └── .claude/agents/       # definições dos agents Claude Code
 ```
@@ -199,5 +202,6 @@ sre-lab/
 - [x] **Fase 4** — Chaos test automatizado (`make chaos-test`, validação end-to-end)
 - [x] **Fase 4** — Workflow GitHub Actions executando chaos test em PR
 - [x] **Fase 4** — Postmortem automatizado via `postmortem-specialist` agent
-- [ ] **Fase 4** — Replicar stack Minikube no OKE (Helm + manifests + SLO)
+- [x] **Fase 4** — Replicar stack Minikube no OKE (Helm + manifests + SLO + chaos test) — ver [docs/oke-deployment.md](docs/oke-deployment.md)
+- [ ] **Fase 5** — Ingress + LoadBalancer free + cert-manager (Grafana em URL pública)
 - [ ] **Fase 4** — FinOps dashboard (custo por namespace)

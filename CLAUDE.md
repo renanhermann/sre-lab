@@ -76,10 +76,11 @@ sre-lab/
 ├── .github/workflows/    # chaos-test.yml — CI valida pipeline SLO em PR
 ├── app/                  # código Go do traffic-simulator
 ├── cluster/              # scripts start.sh e expose.sh
-├── helm/                 # values local + values otimizados pra CI
+├── helm/                 # values local + CI + oke/ (variants pro OKE)
 ├── manifests/
 │   ├── app/              # K8s manifests da app
-│   └── slo/              # PrometheusRules SLO + dashboard Grafana
+│   ├── slo/              # PrometheusRules SLO + dashboard Grafana
+│   └── oke/              # variants do app/SLO pro OKE (ImagePullSecret, OCIR image ref)
 ├── scripts/
 │   ├── chaos-test.sh     # validação automatizada do pipeline de SLO
 │   └── lib/              # log/prom/app helpers (bash 3.2-compatível)
@@ -90,6 +91,7 @@ sre-lab/
 ├── docs/
 │   ├── slo.md            # SLO formal, burn rate, error budget policy
 │   ├── chaos-testing.md  # validação automatizada do pipeline de SLO
+│   ├── oke-deployment.md # guia ponta a ponta da replicação Minikube → OKE
 │   ├── postmortems/      # postmortems de incidentes (TEMPLATE + README)
 │   └── runbooks/         # runbooks executáveis por agent
 └── .claude/agents/       # definições dos agents
@@ -134,5 +136,6 @@ slo:traffic_simulator_availability:error_ratio_rate5m > (14.4 * 0.005)
 - [x] Fase 4 — Chaos test automatizado (`make chaos-test`, validação end-to-end)
 - [x] Fase 4 — Workflow GitHub Actions executando chaos test em PR
 - [x] Fase 4 — Postmortem automatizado via Postmortem Specialist
-- [ ] Fase 4 — Replicar stack Minikube → OKE (Helm + manifests + SLO)
+- [x] Fase 4 — Replicar stack Minikube → OKE (Helm + manifests + SLO + chaos test) — ver `docs/oke-deployment.md`
+- [ ] Fase 5 — Ingress + LoadBalancer free + cert-manager (Grafana em URL pública)
 - [ ] Fase 4 — FinOps dashboard (custo por namespace)
