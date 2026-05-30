@@ -1,14 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="1200" height="780" viewBox="0 0 1200 780" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
      font-family="'SF Mono','Fira Code','Cascadia Code',monospace">
 
   <defs>
+    <!-- ── Arrow markers ───────────────────────────────────── -->
     <marker id="arr-blue"   markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#388bfd"/></marker>
     <marker id="arr-red"    markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#f78166"/></marker>
     <marker id="arr-green"  markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/></marker>
     <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#e36209"/></marker>
     <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#d2a8ff"/></marker>
     <marker id="arr-grafana" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#f46800"/></marker>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- LOGOS — cores oficiais hard-coded (multipath)           -->
+    <!-- ══════════════════════════════════════════════════════ -->
+
+    <!-- Claude / Anthropic — estrela 8 pontas em laranja Anthropic -->
+    <symbol id="logo-claude" viewBox="0 0 24 24">
+      <path fill="#D97757" d="M12 0l2.2 7.6L22 12l-7.8 2.4L12 22l-2.2-7.6L2 12l7.8-4.4L12 0z"/>
+    </symbol>
+
+    <!-- Kubernetes — timão azul oficial #326CE5 -->
+    <symbol id="logo-k8s" viewBox="0 0 24 24">
+      <path fill="#326CE5" d="M12 1.5L21 6v9.5L12 22 3 15.5V6l9-4.5z"/>
+      <path fill="#ffffff" d="M12 7l-3.5 1.8v3.4L12 14l3.5-1.8V8.8L12 7zm0 2.2l1.7.9-.7 1.6h-2l-.7-1.6L12 9.2z"/>
+      <circle fill="#ffffff" cx="12" cy="11" r="0.9"/>
+    </symbol>
+
+    <!-- Prometheus — chama vermelho-laranja oficial (#E6522C) -->
+    <symbol id="logo-prom" viewBox="0 0 24 24">
+      <path fill="#E6522C" d="M12 0c-1.2 3.5-3.8 4.5-3.8 8.2 0 2.4 1.5 3.5 1.5 3.5s-3.1-0.5-3.1-4.2c-2 2-3 5-3 8 0 5 4 8.5 8.4 8.5s8.4-3.5 8.4-8.5c0-4.5-3-7.5-5.4-10.5-0.7 2.4-1.7 3.2-2.8 3.2 0-2.8 1.2-5.4-0.2-8.2z"/>
+      <path fill="#1A1A1A" d="M8.5 17.5h7v2h-7zm0.5 2.3h6c-0.4 1.2-1.6 2.2-3 2.2s-2.6-1-3-2.2z"/>
+    </symbol>
+
+    <!-- Grafana — espiral laranja oficial + bola amarela -->
+    <symbol id="logo-grafana" viewBox="0 0 24 24">
+      <path fill="#F46800" d="M22 11.3c-0.1-0.6-0.3-1.4-0.5-2.1-0.3-0.7-0.7-1.4-1.2-2 0.5-1.9-0.5-3.5-0.5-3.5-1.8-0.1-3 0.6-3.4 0.9-0.1 0-0.2-0.1-0.3-0.1-0.2-0.1-0.3-0.1-0.5-0.2-0.5-0.2-1.1-0.3-1.7-0.4-0.5-2-2.4-2.7-2.4-2.7-1.3 1.5-1.5 2.8-1.5 3.2-0.3 0.1-0.5 0.2-0.8 0.3-0.4 0.2-0.7 0.4-1.1 0.7-0.3 0.2-0.6 0.5-0.9 0.7-2-0.7-3.8 0.2-3.8 0.2-0.2 2.1 0.8 3.5 0.9 3.7-0.1 0.3-0.2 0.5-0.2 0.8-0.2 0.6-0.4 1.3-0.5 1.9 0 0.1 0 0.2-0.1 0.3-1.8 0.9-2.3 2.7-2.3 2.7 1.5 1.7 3.3 1.9 3.5 1.9 0.3 0.4 0.5 0.8 0.8 1.2 0.1 0.1 0.2 0.3 0.4 0.4-0.7 2 0.1 3.6 0.1 3.6 2.1 0.1 3.5-0.9 3.8-1.1 0.2 0.1 0.4 0.1 0.6 0.2 0.6 0.2 1.3 0.3 1.9 0.4 0.1 0 0.2 0 0.3 0 0.9 1.3 2.5 1.5 2.5 1.5 1.1-1.2 1.2-2.4 1.2-2.7 0 0 0-0.1 0-0.1 0.4-0.3 0.8-0.6 1.2-1 0.8-0.8 1.4-1.7 1.9-2.7 0-0.1 0.1-0.2 0.1-0.3 2 0.1 3.4-1.2 3.4-1.2-0.3-2.1-1.5-3.1-1.7-3.3 0 0 0-0.1 0-0.1 0-0.1 0-0.2 0.1-0.3 0-0.1 0-0.2 0-0.3 0-0.1 0-0.2 0-0.3 0-0.1 0-0.2 0-0.3z"/>
+      <circle fill="#FCB814" cx="12" cy="12" r="2.5"/>
+    </symbol>
+
+    <!-- Loki — logo Grafana Loki estilizado em amarelo -->
+    <symbol id="logo-loki" viewBox="0 0 24 24">
+      <path fill="#FBCA0C" d="M5 4h14v3l-2 2v8l-3 4-2-2-2 2-3-4V9L5 7V4z"/>
+      <path fill="#1A1A1A" d="M9 9a1 1 0 110 2 1 1 0 010-2zm6 0a1 1 0 110 2 1 1 0 010-2z"/>
+      <path fill="#1A1A1A" d="M11 14h2l-1 2-1-2z"/>
+    </symbol>
+
+    <!-- Alloy — partícula com 3 elétrons (cor Grafana Alloy: vermelho-laranja) -->
+    <symbol id="logo-alloy" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3" fill="#F55A4E"/>
+      <ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="#F55A4E" stroke-width="1.5"/>
+      <ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="#F55A4E" stroke-width="1.5" transform="rotate(60 12 12)"/>
+      <ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="#F55A4E" stroke-width="1.5" transform="rotate(120 12 12)"/>
+    </symbol>
+
+    <!-- AlertManager — sino laranja Prometheus -->
+    <symbol id="logo-alertmgr" viewBox="0 0 24 24">
+      <path fill="#E6522C" d="M12 2a2 2 0 00-2 2v1.3C7.2 6.2 5 8.8 5 12v5l-2 2v1h18v-1l-2-2v-5c0-3.2-2.2-5.8-5-6.7V4a2 2 0 00-2-2z"/>
+      <path fill="#E6522C" d="M10 21a2 2 0 104 0h-4z"/>
+      <circle fill="#ffffff" cx="17" cy="6" r="2.5"/>
+      <text x="17" y="8" text-anchor="middle" font-size="4" font-weight="bold" fill="#E6522C">!</text>
+    </symbol>
+
+    <!-- GitHub — cat silhouette cinza escuro -->
+    <symbol id="logo-github" viewBox="0 0 24 24">
+      <path fill="#e6edf3" d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2.9-.3 2-.4 3-.4s2.1.1 3 .4c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.2 2.9.1 3.2.8.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.5-5.3 5.8.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"/>
+    </symbol>
+
+    <!-- Oracle — losango vermelho clássico (#F80000) -->
+    <symbol id="logo-oracle" viewBox="0 0 24 24">
+      <path fill="#F80000" d="M8 6h8a6 6 0 010 12H8a6 6 0 010-12zm0 2.5a3.5 3.5 0 000 7h8a3.5 3.5 0 000-7H8z"/>
+    </symbol>
+
+    <!-- Terraform — H estilizado roxo HashiCorp (#7B42BC) -->
+    <symbol id="logo-terraform" viewBox="0 0 24 24">
+      <path fill="#7B42BC" d="M3 3l7 4v8L3 11V3z"/>
+      <path fill="#7B42BC" d="M11 7.6l7-4v8l-7 4V7.6z"/>
+      <path fill="#7B42BC" d="M3 12.6l7 4v4l-7-4v-4z"/>
+      <path fill="#623CE4" d="M11 17.6l7-4v4l-7 4v-4z" opacity="0.85"/>
+    </symbol>
+
+    <!-- Docker — baleia azul (#2496ED) -->
+    <symbol id="logo-docker" viewBox="0 0 24 24">
+      <path fill="#2496ED" d="M2 12h2v2H2zm3 0h2v2H5zm3 0h2v2H8zm3 0h2v2h-2zm-6-3h2v2H5zm3 0h2v2H8zm3 0h2v2h-2zm0-3h2v2h-2zm10 6c-1 3-4 4-7 4H4a3 3 0 01-3-3h21c0-.4 0-.7-.1-1z"/>
+    </symbol>
+
+    <!-- Go — gopher cyan oficial (#00ADD8) -->
+    <symbol id="logo-go" viewBox="0 0 24 24">
+      <ellipse fill="#00ADD8" cx="12" cy="14" rx="9" ry="6"/>
+      <circle fill="#ffffff" cx="9" cy="11" r="2.2"/>
+      <circle fill="#ffffff" cx="15" cy="11" r="2.2"/>
+      <circle fill="#1A1A1A" cx="9.5" cy="11" r="0.9"/>
+      <circle fill="#1A1A1A" cx="15.5" cy="11" r="0.9"/>
+    </symbol>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- ANIMAÇÕES — keyframes pra dots fluindo                  -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <style>
+      .flow-line { stroke-dasharray: 6 3; animation: dash 1.2s linear infinite; }
+      @keyframes dash { to { stroke-dashoffset: -18; } }
+      .flow-line-thin { stroke-dasharray: 4 2; animation: dash 1.5s linear infinite; }
+    </style>
   </defs>
 
   <!-- ── Background ───────────────────────────────────────── -->
@@ -24,40 +118,47 @@
 
   <!-- Claude Code -->
   <rect x="18" y="78" width="188" height="68" rx="8" fill="#161b22" stroke="#388bfd" stroke-width="2"/>
-  <text x="112" y="101" text-anchor="middle" fill="#388bfd" font-size="11" font-weight="bold">✦  CLAUDE CODE</text>
+  <use href="#logo-claude" x="32" y="92" width="14" height="14" color="#388bfd"/>
+  <text x="118" y="103" text-anchor="middle" fill="#388bfd" font-size="11" font-weight="bold">CLAUDE CODE</text>
   <text x="112" y="118" text-anchor="middle" fill="#7d8590" font-size="10">Agent Orchestrator</text>
   <text x="112" y="134" text-anchor="middle" fill="#7d8590" font-size="9">claude-sonnet-4-6</text>
 
   <!-- SRE Specialist -->
   <rect x="18" y="165" width="188" height="72" rx="8" fill="#161b22" stroke="#f78166" stroke-width="1.5"/>
-  <text x="112" y="187" text-anchor="middle" fill="#f78166" font-size="10" font-weight="bold">🔥  SRE SPECIALIST</text>
+  <use href="#logo-prom" x="32" y="178" width="14" height="14" color="#f78166"/>
+  <text x="118" y="189" text-anchor="middle" fill="#f78166" font-size="10" font-weight="bold">SRE SPECIALIST</text>
   <text x="112" y="204" text-anchor="middle" fill="#7d8590" font-size="9">RED / USE analysis</text>
   <text x="112" y="219" text-anchor="middle" fill="#7d8590" font-size="9">PromQL · LogQL · Triage</text>
   <text x="112" y="232" text-anchor="middle" fill="#7d8590" font-size="9">Runbook executor</text>
 
   <!-- K8s Specialist -->
   <rect x="18" y="256" width="188" height="72" rx="8" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
-  <text x="112" y="278" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="bold">☸  K8S SPECIALIST</text>
+  <use href="#logo-k8s" x="32" y="269" width="14" height="14" color="#3fb950"/>
+  <text x="118" y="280" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="bold">K8S SPECIALIST</text>
   <text x="112" y="295" text-anchor="middle" fill="#7d8590" font-size="9">Pods · HPA · Events</text>
   <text x="112" y="310" text-anchor="middle" fill="#7d8590" font-size="9">Rightsizing · Health</text>
   <text x="112" y="323" text-anchor="middle" fill="#7d8590" font-size="9">kubectl diagnostics</text>
 
   <!-- Git Specialist -->
   <rect x="18" y="347" width="188" height="72" rx="8" fill="#161b22" stroke="#d2a8ff" stroke-width="1.5"/>
-  <text x="112" y="369" text-anchor="middle" fill="#d2a8ff" font-size="10" font-weight="bold">⎇  GIT SPECIALIST</text>
+  <use href="#logo-github" x="32" y="360" width="14" height="14" color="#d2a8ff"/>
+  <text x="118" y="371" text-anchor="middle" fill="#d2a8ff" font-size="10" font-weight="bold">GIT SPECIALIST</text>
   <text x="112" y="386" text-anchor="middle" fill="#7d8590" font-size="9">Atomic commits</text>
   <text x="112" y="401" text-anchor="middle" fill="#7d8590" font-size="9">feat · ops · docs · fix</text>
   <text x="112" y="414" text-anchor="middle" fill="#7d8590" font-size="9">GitOps workflow</text>
 
   <!-- GitHub -->
   <rect x="18" y="450" width="188" height="58" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
-  <text x="112" y="474" text-anchor="middle" fill="#e6edf3" font-size="11" font-weight="bold">⎇  GitHub</text>
+  <use href="#logo-github" x="36" y="464" width="14" height="14" color="#e6edf3"/>
+  <text x="120" y="475" text-anchor="middle" fill="#e6edf3" font-size="11" font-weight="bold">GitHub</text>
   <text x="112" y="492" text-anchor="middle" fill="#7d8590" font-size="9">renanhermann/sre-lab</text>
   <text x="112" y="504" text-anchor="middle" fill="#3fb950" font-size="9">● public</text>
 
-  <!-- Oracle Cloud — Implementado via Terraform -->
+  <!-- Oracle Cloud — OKE -->
   <rect x="18" y="535" width="188" height="80" rx="8" fill="#161b22" stroke="#e36209" stroke-width="2"/>
-  <text x="112" y="558" text-anchor="middle" fill="#e36209" font-size="10" font-weight="bold">☁  ORACLE CLOUD — OKE</text>
+  <use href="#logo-oracle" x="22" y="549" width="14" height="14" color="#e36209"/>
+  <text x="115" y="560" text-anchor="middle" fill="#e36209" font-size="10" font-weight="bold">ORACLE CLOUD — OKE</text>
+  <use href="#logo-terraform" x="190" y="549" width="14" height="14" color="#7c4dff"/>
   <text x="112" y="575" text-anchor="middle" fill="#7d8590" font-size="9">k8s v1.32 · 2× Standard3.Flex</text>
   <text x="112" y="589" text-anchor="middle" fill="#7d8590" font-size="9">terraform/00-foundation</text>
   <text x="112" y="603" text-anchor="middle" fill="#7d8590" font-size="9">terraform/01-oke</text>
@@ -74,7 +175,8 @@
 
   <!-- K8s outer box -->
   <rect x="232" y="74" width="948" height="590" rx="10" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
-  <text x="706" y="97" text-anchor="middle" fill="#7d8590" font-size="11">☸  Kubernetes — Minikube (dev local, v1.30)  ⇄  OKE (OCI São Paulo, v1.32)  ·  mesma stack, ambientes paralelos</text>
+  <use href="#logo-k8s" x="240" y="84" width="16" height="16" color="#7d8590"/>
+  <text x="710" y="97" text-anchor="middle" fill="#7d8590" font-size="11">Kubernetes — Minikube (dev local, v1.30)  ⇄  OKE (OCI São Paulo, v1.32)  ·  mesma stack, ambientes paralelos</text>
 
   <!-- ── namespace: default ── -->
   <rect x="250" y="108" width="912" height="138" rx="8" fill="#161b22" stroke="#388bfd" stroke-width="1.5" stroke-dasharray="5,3"/>
@@ -82,7 +184,8 @@
 
   <!-- traffic-simulator -->
   <rect x="268" y="135" width="200" height="96" rx="6" fill="#0d1117" stroke="#388bfd" stroke-width="1"/>
-  <text x="368" y="155" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="bold">traffic-simulator</text>
+  <use href="#logo-go" x="280" y="146" width="14" height="14" color="#79c0ff"/>
+  <text x="378" y="155" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="bold">traffic-simulator</text>
   <text x="368" y="170" text-anchor="middle" fill="#7d8590" font-size="9">Deployment  (Go · ~8 MB)</text>
   <text x="368" y="184" text-anchor="middle" fill="#7d8590" font-size="9">replicas: 2 → 5</text>
   <text x="368" y="198" text-anchor="middle" fill="#7d8590" font-size="9">GET /health · GET /metrics</text>
@@ -90,12 +193,14 @@
 
   <!-- HPA -->
   <rect x="482" y="135" width="148" height="42" rx="6" fill="#0d1117" stroke="#3fb950" stroke-width="1"/>
-  <text x="556" y="152" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="bold">HPA</text>
+  <use href="#logo-k8s" x="494" y="146" width="12" height="12" color="#3fb950"/>
+  <text x="566" y="152" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="bold">HPA</text>
   <text x="556" y="168" text-anchor="middle" fill="#7d8590" font-size="9">CPU ≥ 70% → scale out</text>
 
   <!-- PDB -->
   <rect x="482" y="188" width="148" height="42" rx="6" fill="#0d1117" stroke="#d2a8ff" stroke-width="1"/>
-  <text x="556" y="205" text-anchor="middle" fill="#d2a8ff" font-size="10" font-weight="bold">PDB</text>
+  <use href="#logo-k8s" x="494" y="199" width="12" height="12" color="#d2a8ff"/>
+  <text x="566" y="205" text-anchor="middle" fill="#d2a8ff" font-size="10" font-weight="bold">PDB</text>
   <text x="556" y="221" text-anchor="middle" fill="#7d8590" font-size="9">minAvailable: 1</text>
 
   <!-- Stress endpoints -->
@@ -112,7 +217,8 @@
 
   <!-- Prometheus -->
   <rect x="268" y="288" width="188" height="90" rx="6" fill="#0d1117" stroke="#e36209" stroke-width="1.2"/>
-  <text x="362" y="308" text-anchor="middle" fill="#e36209" font-size="11" font-weight="bold">Prometheus</text>
+  <use href="#logo-prom" x="278" y="297" width="16" height="16" color="#e36209"/>
+  <text x="372" y="308" text-anchor="middle" fill="#e36209" font-size="11" font-weight="bold">Prometheus</text>
   <text x="362" y="325" text-anchor="middle" fill="#7d8590" font-size="9">scrape interval: 15s</text>
   <text x="362" y="340" text-anchor="middle" fill="#7d8590" font-size="9">retention: 3d · 5GB</text>
   <text x="362" y="355" text-anchor="middle" fill="#7d8590" font-size="9">TSDB local storage</text>
@@ -120,7 +226,8 @@
 
   <!-- Grafana -->
   <rect x="472" y="288" width="188" height="90" rx="6" fill="#0d1117" stroke="#f46800" stroke-width="1.2"/>
-  <text x="566" y="308" text-anchor="middle" fill="#f46800" font-size="11" font-weight="bold">Grafana</text>
+  <use href="#logo-grafana" x="488" y="297" width="16" height="16" color="#f46800"/>
+  <text x="582" y="308" text-anchor="middle" fill="#f46800" font-size="11" font-weight="bold">Grafana</text>
   <text x="566" y="325" text-anchor="middle" fill="#7d8590" font-size="9">RED dashboard</text>
   <text x="566" y="340" text-anchor="middle" fill="#7d8590" font-size="9">USE dashboard</text>
   <text x="566" y="355" text-anchor="middle" fill="#7d8590" font-size="9">datasources: Prom + Loki</text>
@@ -128,7 +235,8 @@
 
   <!-- AlertManager -->
   <rect x="676" y="288" width="188" height="90" rx="6" fill="#0d1117" stroke="#d2a8ff" stroke-width="1.2"/>
-  <text x="770" y="308" text-anchor="middle" fill="#d2a8ff" font-size="11" font-weight="bold">AlertManager</text>
+  <use href="#logo-alertmgr" x="680" y="297" width="16" height="16" color="#d2a8ff"/>
+  <text x="780" y="308" text-anchor="middle" fill="#d2a8ff" font-size="11" font-weight="bold">AlertManager</text>
   <text x="770" y="325" text-anchor="middle" fill="#f78166" font-size="9">HighErrorRate  &gt; 5%</text>
   <text x="770" y="340" text-anchor="middle" fill="#e3b341" font-size="9">HighLatencyP99 &gt; 1s</text>
   <text x="770" y="355" text-anchor="middle" fill="#79c0ff" font-size="9">HighActiveReqs &gt; 20</text>
@@ -136,21 +244,24 @@
 
   <!-- node-exporter -->
   <rect x="268" y="392" width="188" height="80" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
-  <text x="362" y="411" text-anchor="middle" fill="#7d8590" font-size="10" font-weight="bold">node-exporter</text>
+  <use href="#logo-k8s" x="280" y="402" width="12" height="12" color="#7d8590"/>
+  <text x="372" y="411" text-anchor="middle" fill="#7d8590" font-size="10" font-weight="bold">node-exporter</text>
   <text x="362" y="427" text-anchor="middle" fill="#7d8590" font-size="9">CPU · MEM · Disk · Net</text>
   <text x="362" y="442" text-anchor="middle" fill="#7d8590" font-size="9">DaemonSet</text>
   <text x="362" y="457" text-anchor="middle" fill="#7d8590" font-size="9">USE metrics → Prometheus</text>
 
   <!-- kube-state-metrics -->
   <rect x="472" y="392" width="188" height="80" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
-  <text x="566" y="411" text-anchor="middle" fill="#7d8590" font-size="10" font-weight="bold">kube-state-metrics</text>
+  <use href="#logo-k8s" x="484" y="402" width="12" height="12" color="#7d8590"/>
+  <text x="578" y="411" text-anchor="middle" fill="#7d8590" font-size="10" font-weight="bold">kube-state-metrics</text>
   <text x="566" y="427" text-anchor="middle" fill="#7d8590" font-size="9">Pods · Deployments</text>
   <text x="566" y="442" text-anchor="middle" fill="#7d8590" font-size="9">HPA · PVC · Events</text>
   <text x="566" y="457" text-anchor="middle" fill="#7d8590" font-size="9">K8s objects → metrics</text>
 
   <!-- ServiceMonitor + PrometheusRule -->
   <rect x="676" y="392" width="468" height="80" rx="6" fill="#0d1117" stroke="#388bfd" stroke-width="1"/>
-  <text x="910" y="411" text-anchor="middle" fill="#388bfd" font-size="10" font-weight="bold">ServiceMonitor  ·  PrometheusRule</text>
+  <use href="#logo-prom" x="688" y="402" width="12" height="12" color="#388bfd"/>
+  <text x="918" y="411" text-anchor="middle" fill="#388bfd" font-size="10" font-weight="bold">ServiceMonitor  ·  PrometheusRule</text>
   <text x="910" y="428" text-anchor="middle" fill="#7d8590" font-size="9">ServiceMonitor → descobre traffic-simulator · GET /metrics · 15s</text>
   <text x="910" y="444" text-anchor="middle" fill="#7d8590" font-size="9">PrometheusRule → define os 3 alertas acima (avaliação: 30s)</text>
   <text x="910" y="460" text-anchor="middle" fill="#7d8590" font-size="9">label: release=kube-prometheus-stack → Prometheus Operator descobre</text>
@@ -161,7 +272,8 @@
 
   <!-- Loki -->
   <rect x="268" y="530" width="260" height="104" rx="6" fill="#0d1117" stroke="#3fb950" stroke-width="1.2"/>
-  <text x="398" y="550" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="bold">Loki</text>
+  <use href="#logo-loki" x="282" y="540" width="16" height="16" color="#3fb950"/>
+  <text x="408" y="550" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="bold">Loki</text>
   <text x="398" y="567" text-anchor="middle" fill="#7d8590" font-size="9">SingleBinary mode</text>
   <text x="398" y="582" text-anchor="middle" fill="#7d8590" font-size="9">schema: v13 (tsdb) · retention: 48h</text>
   <text x="398" y="597" text-anchor="middle" fill="#7d8590" font-size="9">storage: filesystem (PVC 5Gi)</text>
@@ -169,7 +281,8 @@
 
   <!-- Alloy -->
   <rect x="544" y="530" width="260" height="104" rx="6" fill="#0d1117" stroke="#56d364" stroke-width="1.2"/>
-  <text x="674" y="550" text-anchor="middle" fill="#56d364" font-size="11" font-weight="bold">Alloy</text>
+  <use href="#logo-alloy" x="558" y="540" width="16" height="16" color="#56d364"/>
+  <text x="684" y="550" text-anchor="middle" fill="#56d364" font-size="11" font-weight="bold">Alloy</text>
   <text x="674" y="567" text-anchor="middle" fill="#7d8590" font-size="9">DaemonSet (1 pod/nó)</text>
   <text x="674" y="582" text-anchor="middle" fill="#7d8590" font-size="9">loki.source.kubernetes</text>
   <text x="674" y="597" text-anchor="middle" fill="#7d8590" font-size="9">labels: namespace · pod · container</text>
@@ -183,58 +296,108 @@
   <text x="982" y="600" text-anchor="middle" fill="#7d8590" font-size="9">correlação: timestamp alerta → log do pod causador</text>
 
   <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- ARROWS                                                 -->
+  <!-- ARROWS — re-roteadas pra não cruzar blocos             -->
+  <!-- Todas com class="flow-line" → marching ants animation    -->
   <!-- ═══════════════════════════════════════════════════════ -->
 
-  <!-- Claude Code → SRE Specialist -->
-  <line x1="112" y1="146" x2="112" y2="163" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)"/>
-  <!-- SRE Specialist → K8s Specialist -->
-  <line x1="112" y1="237" x2="112" y2="254" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)"/>
-  <!-- K8s Specialist → Git Specialist -->
-  <line x1="112" y1="328" x2="112" y2="345" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)"/>
-  <!-- Git Specialist → GitHub -->
-  <line x1="112" y1="419" x2="112" y2="448" stroke="#d2a8ff" stroke-width="1.5" marker-end="url(#arr-purple)"/>
-  <!-- GitHub → OCI (Terraform apply) -->
-  <line x1="112" y1="508" x2="112" y2="533" stroke="#e36209" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+  <!-- ── Coluna esquerda: orquestração vertical ── -->
+  <line x1="112" y1="146" x2="112" y2="163" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)" class="flow-line"/>
+  <line x1="112" y1="237" x2="112" y2="254" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)" class="flow-line"/>
+  <line x1="112" y1="328" x2="112" y2="345" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)" class="flow-line"/>
+  <line x1="112" y1="419" x2="112" y2="448" stroke="#d2a8ff" stroke-width="1.5" marker-end="url(#arr-purple)" class="flow-line"/>
+  <line x1="112" y1="508" x2="112" y2="533" stroke="#e36209" stroke-width="1.5" marker-end="url(#arr-orange)" class="flow-line"/>
 
-  <!-- Claude Code → K8s cluster -->
-  <line x1="206" y1="112" x2="248" y2="112" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <!-- ── Claude Code → K8s cluster (entry) ── -->
+  <path id="flow-claude-k8s" d="M 206 112 L 248 112" stroke="#388bfd" stroke-width="1.5" fill="none" marker-end="url(#arr-blue)" class="flow-line"/>
 
-  <!-- SRE Specialist ⤳ Prometheus (query) -->
-  <path d="M 206 195 Q 230 195 230 333 L 266 333" stroke="#f78166" stroke-width="1.5" fill="none" stroke-dasharray="6,3" marker-end="url(#arr-red)"/>
+  <!-- ── SRE Specialist → Prometheus (query) — canal lateral ── -->
+  <path id="flow-sre-prom" d="M 206 195 L 222 195 L 222 333 L 266 333" stroke="#f78166" stroke-width="1.5" fill="none" marker-end="url(#arr-red)" class="flow-line"/>
 
-  <!-- SRE Specialist ⤳ Loki (query) -->
-  <path d="M 206 210 Q 240 210 240 580 L 266 580" stroke="#f78166" stroke-width="1.5" fill="none" stroke-dasharray="6,3" marker-end="url(#arr-red)"/>
+  <!-- ── SRE Specialist → Loki (query) — canal lateral mais externo ── -->
+  <path id="flow-sre-loki" d="M 206 220 L 232 220 L 232 580 L 266 580" stroke="#f78166" stroke-width="1.5" fill="none" marker-end="url(#arr-red)" class="flow-line"/>
 
-  <!-- K8s Specialist ⤳ cluster (kubectl) -->
-  <path d="M 206 292 Q 232 292 232 183 L 248 183" stroke="#3fb950" stroke-width="1.5" fill="none" stroke-dasharray="6,3" marker-end="url(#arr-green)"/>
+  <!-- ── K8s Specialist → cluster (kubectl) ── -->
+  <path id="flow-k8s-cluster" d="M 206 292 L 240 292 L 240 183 L 248 183" stroke="#3fb950" stroke-width="1.5" fill="none" marker-end="url(#arr-green)" class="flow-line"/>
 
-  <!-- traffic-simulator → Alloy (logs) -->
-  <path d="M 368 231 Q 368 490 544 582" stroke="#56d364" stroke-width="1.2" fill="none" stroke-dasharray="4,2" marker-end="url(#arr-green)"/>
+  <!-- ── traffic-simulator → ServiceMonitor (metrics) — desce em L sem cruzar ── -->
+  <path id="flow-app-svcmon" d="M 468 183 L 470 183 L 470 432 L 676 432" stroke="#388bfd" stroke-width="1.2" fill="none" marker-end="url(#arr-blue)" class="flow-line-thin"/>
 
-  <!-- Alloy → Loki -->
-  <line x1="544" y1="582" x2="530" y2="582" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <!-- ── ServiceMonitor → Prometheus (scrape inicia) — sobe pela direita ── -->
+  <path id="flow-svcmon-prom" d="M 676 412 L 668 412 L 668 333 L 456 333" stroke="#e36209" stroke-width="1.2" fill="none" marker-end="url(#arr-orange)" class="flow-line-thin"/>
 
-  <!-- traffic-simulator → ServiceMonitor (metrics) -->
-  <path d="M 468 183 Q 580 183 676 430" stroke="#388bfd" stroke-width="1.2" fill="none" stroke-dasharray="4,2" marker-end="url(#arr-blue)"/>
+  <!-- ── node-exporter → Prometheus (vertical) ── -->
+  <line x1="362" y1="392" x2="362" y2="380" stroke="#e36209" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-orange)" class="flow-line"/>
 
-  <!-- ServiceMonitor → Prometheus -->
-  <path d="M 676 432 Q 560 432 456 378" stroke="#e36209" stroke-width="1.2" fill="none" stroke-dasharray="4,2" marker-end="url(#arr-orange)"/>
+  <!-- ── kube-state-metrics → Prometheus — L pelo canto inferior ── -->
+  <path id="flow-ksm-prom" d="M 566 392 L 566 388 L 460 388 L 460 378" stroke="#e36209" stroke-width="1" fill="none" marker-end="url(#arr-orange)" class="flow-line-thin"/>
 
-  <!-- node-exporter → Prometheus -->
-  <line x1="362" y1="392" x2="362" y2="380" stroke="#e36209" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-orange)"/>
+  <!-- ── Prometheus → Grafana ── -->
+  <line x1="456" y1="333" x2="470" y2="333" stroke="#f46800" stroke-width="1.5" marker-end="url(#arr-grafana)" class="flow-line"/>
 
-  <!-- kube-state-metrics → Prometheus -->
-  <path d="M 566 392 Q 566 380 456 370" stroke="#e36209" stroke-width="1" fill="none" stroke-dasharray="3,2" marker-end="url(#arr-orange)"/>
+  <!-- ── Prometheus → AlertManager (via canal acima dos exporters) ── -->
+  <path id="flow-prom-am" d="M 660 333 L 674 333" stroke="#d2a8ff" stroke-width="1.5" fill="none" marker-end="url(#arr-purple)" class="flow-line"/>
 
-  <!-- Prometheus → Grafana -->
-  <line x1="456" y1="333" x2="470" y2="333" stroke="#f46800" stroke-width="1.5" marker-end="url(#arr-grafana)"/>
+  <!-- ── traffic-simulator → Alloy (logs) — desce em L pelo canal direito de namespace:default ── -->
+  <path id="flow-app-alloy" d="M 368 231 L 368 252 L 540 252 L 540 510 L 674 510 L 674 530" stroke="#56d364" stroke-width="1.2" fill="none" marker-end="url(#arr-green)" class="flow-line-thin"/>
 
-  <!-- Prometheus → AlertManager -->
-  <line x1="660" y1="333" x2="674" y2="333" stroke="#d2a8ff" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+  <!-- ── Alloy → Loki (curto, horizontal entre os boxes) ── -->
+  <line x1="544" y1="582" x2="530" y2="582" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-green)" class="flow-line"/>
 
-  <!-- Loki → Grafana -->
-  <path d="M 398 530 Q 398 440 472 380" stroke="#3fb950" stroke-width="1.2" fill="none" stroke-dasharray="4,2" marker-end="url(#arr-grafana)"/>
+  <!-- ── Loki → Grafana — sobe em L pela borda esquerda do namespace:logging ── -->
+  <path id="flow-loki-grafana" d="M 398 530 L 398 498 L 472 498 L 472 378" stroke="#3fb950" stroke-width="1.2" fill="none" marker-end="url(#arr-grafana)" class="flow-line-thin"/>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- DOTS FLUINDO — animateMotion ao longo dos paths principais -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <!-- Dot azul fluindo: traffic-simulator → ServiceMonitor (metrics scrape) -->
+  <circle r="3" fill="#79c0ff" opacity="0.9">
+    <animateMotion dur="3s" repeatCount="indefinite">
+      <mpath href="#flow-app-svcmon"/>
+    </animateMotion>
+  </circle>
+
+  <!-- Dot laranja fluindo: ServiceMonitor → Prometheus -->
+  <circle r="3" fill="#e36209" opacity="0.9">
+    <animateMotion dur="2.5s" repeatCount="indefinite">
+      <mpath href="#flow-svcmon-prom"/>
+    </animateMotion>
+  </circle>
+
+  <!-- Dot verde fluindo: traffic-simulator → Alloy (logs) -->
+  <circle r="3" fill="#56d364" opacity="0.9">
+    <animateMotion dur="4s" repeatCount="indefinite">
+      <mpath href="#flow-app-alloy"/>
+    </animateMotion>
+  </circle>
+
+  <!-- Dot verde fluindo: Loki → Grafana -->
+  <circle r="3" fill="#56d364" opacity="0.9">
+    <animateMotion dur="3.5s" repeatCount="indefinite">
+      <mpath href="#flow-loki-grafana"/>
+    </animateMotion>
+  </circle>
+
+  <!-- Dot vermelho fluindo: SRE Specialist → Prometheus (query) -->
+  <circle r="3" fill="#f78166" opacity="0.9">
+    <animateMotion dur="3s" repeatCount="indefinite">
+      <mpath href="#flow-sre-prom"/>
+    </animateMotion>
+  </circle>
+
+  <!-- Dot vermelho fluindo: SRE Specialist → Loki -->
+  <circle r="3" fill="#f78166" opacity="0.9">
+    <animateMotion dur="3.5s" repeatCount="indefinite">
+      <mpath href="#flow-sre-loki"/>
+    </animateMotion>
+  </circle>
+
+  <!-- Dot roxo fluindo: Prometheus → AlertManager (alert eval) -->
+  <circle r="3" fill="#d2a8ff" opacity="0.9">
+    <animateMotion dur="2s" repeatCount="indefinite">
+      <mpath href="#flow-prom-am"/>
+    </animateMotion>
+  </circle>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- LEGEND                                                 -->
@@ -242,23 +405,25 @@
   <rect x="232" y="670" width="948" height="92" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
   <text x="706" y="691" text-anchor="middle" fill="#7d8590" font-size="10" font-weight="bold">Legenda de fluxos</text>
 
-  <line x1="260" y1="715" x2="310" y2="715" stroke="#388bfd" stroke-width="2" marker-end="url(#arr-blue)"/>
+  <line x1="260" y1="715" x2="310" y2="715" stroke="#388bfd" stroke-width="2" marker-end="url(#arr-blue)" class="flow-line"/>
   <text x="318" y="719" fill="#7d8590" font-size="9">orquestração / kubectl</text>
 
-  <line x1="455" y1="715" x2="505" y2="715" stroke="#f78166" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-red)"/>
+  <line x1="455" y1="715" x2="505" y2="715" stroke="#f78166" stroke-width="2" marker-end="url(#arr-red)" class="flow-line"/>
   <text x="513" y="719" fill="#7d8590" font-size="9">query (PromQL / LogQL)</text>
 
-  <line x1="670" y1="715" x2="720" y2="715" stroke="#3fb950" stroke-width="2" marker-end="url(#arr-green)"/>
+  <line x1="670" y1="715" x2="720" y2="715" stroke="#3fb950" stroke-width="2" marker-end="url(#arr-green)" class="flow-line"/>
   <text x="728" y="719" fill="#7d8590" font-size="9">fluxo de logs</text>
 
-  <line x1="840" y1="715" x2="890" y2="715" stroke="#e36209" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#arr-orange)"/>
+  <line x1="840" y1="715" x2="890" y2="715" stroke="#e36209" stroke-width="2" marker-end="url(#arr-orange)" class="flow-line"/>
   <text x="898" y="719" fill="#7d8590" font-size="9">métricas (scrape)</text>
 
-  <line x1="1010" y1="715" x2="1060" y2="715" stroke="#f46800" stroke-width="2" marker-end="url(#arr-grafana)"/>
+  <line x1="1010" y1="715" x2="1060" y2="715" stroke="#f46800" stroke-width="2" marker-end="url(#arr-grafana)" class="flow-line"/>
   <text x="1068" y="719" fill="#7d8590" font-size="9">visualização (Grafana)</text>
 
+  <text x="706" y="743" text-anchor="middle" fill="#484f58" font-size="9">setas tracejadas em movimento · pontos coloridos = pacotes de dados fluindo em tempo real</text>
+
   <!-- Stack versions -->
-  <text x="706" y="750" text-anchor="middle" fill="#484f58" font-size="9">
+  <text x="706" y="756" text-anchor="middle" fill="#484f58" font-size="9">
     Kubernetes 1.30/1.32  ·  Prometheus 3.x  ·  Grafana 12.x  ·  Loki 3.6  ·  Alloy 1.x  ·  Go 1.22  ·  Terraform 1.7  ·  Claude Code agents
   </text>
 
