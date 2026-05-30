@@ -13,7 +13,7 @@ Construído para demonstrar operação sênior: SLO, runbooks executáveis, chao
 | Logs | Loki + Alloy (coleta via K8s API) |
 | Confiabilidade | SLO formal com burn rate alerts em `manifests/slo/` — ver `docs/slo.md` |
 | App de teste | `traffic-simulator` (Go) — RED + endpoints `/stress/*` e `/admin/fault` |
-| Agents | Claude Code (SRE Specialist, K8s Specialist, Git Specialist) |
+| Agents | Claude Code (SRE Specialist, K8s Specialist, Git Specialist, Postmortem Specialist) |
 
 ## Como subir o lab
 
@@ -62,6 +62,13 @@ Monitora saúde do cluster: pods, HPA, eventos, uso de recursos, rightsizing.
 Faz commits atômicos (um por arquivo), cria branches e documenta mudanças.
 **Quando usar**: após mudança em manifests, runbook atualizado, dashboard criado.
 
+### Postmortem Specialist
+Gera draft de postmortem a partir de janela de tempo + nome do incidente.
+Consulta Prometheus (ALERTS firing histórico, RED, SLO burn rate), Loki e
+eventos do Kubernetes. Preenche o template marcando fato vs hipótese.
+**Quando usar**: incidente mitigado e precisa ser documentado. Output em
+`docs/postmortems/YYYY-MM-DD-<slug>.md` — requer revisão humana antes de publicar.
+
 ## Estrutura de diretórios
 
 ```
@@ -83,6 +90,7 @@ sre-lab/
 ├── docs/
 │   ├── slo.md            # SLO formal, burn rate, error budget policy
 │   ├── chaos-testing.md  # validação automatizada do pipeline de SLO
+│   ├── postmortems/      # postmortems de incidentes (TEMPLATE + README)
 │   └── runbooks/         # runbooks executáveis por agent
 └── .claude/agents/       # definições dos agents
 ```
@@ -125,6 +133,6 @@ slo:traffic_simulator_availability:error_ratio_rate5m > (14.4 * 0.005)
 - [x] Fase 3 — SLO formal com error budget e burn rate alerts
 - [x] Fase 4 — Chaos test automatizado (`make chaos-test`, validação end-to-end)
 - [x] Fase 4 — Workflow GitHub Actions executando chaos test em PR
-- [ ] Fase 4 — Postmortem automatizado via Git Specialist
+- [x] Fase 4 — Postmortem automatizado via Postmortem Specialist
 - [ ] Fase 4 — Replicar stack Minikube → OKE (Helm + manifests + SLO)
 - [ ] Fase 4 — FinOps dashboard (custo por namespace)

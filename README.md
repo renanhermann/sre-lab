@@ -27,7 +27,7 @@ regredir, o PR é bloqueado.
 | Logs | Grafana Loki + Alloy (coleta via Kubernetes API) |
 | Confiabilidade | SLO formal com error budget e burn rate multi-window/multi-burn-rate |
 | App de teste | `traffic-simulator` — Go, ~8MB, endpoints RED + chaos primitives |
-| Automação | Claude Code (agents: SRE Specialist, K8s Specialist, Git Specialist) |
+| Automação | Claude Code (agents: SRE Specialist, K8s Specialist, Git Specialist, Postmortem Specialist) |
 
 ## Como subir
 
@@ -122,12 +122,20 @@ completo de validação.
 | `sre-specialist` | Analisa RED (Rate/Errors/Duration) + USE, consulta Prometheus e Loki, gera relatório com causa raiz |
 | `k8s-specialist` | Monitora pods, HPA, eventos, uso de recursos e recomenda rightsizing |
 | `git-specialist` | Commits atômicos, branches por feature, histórico GitOps limpo |
+| `postmortem-specialist` | Gera draft de postmortem a partir de janela de tempo + nome do incidente — consulta Prom, Loki e eventos K8s, marca fato vs hipótese |
 
 ## Runbooks
 
 - [HighErrorRate](docs/runbooks/high-error-rate.md) — erro rate > 5% por 1 minuto
 - [HighLatencyP99](docs/runbooks/high-latency.md) — P99 > 1s por 2 minutos
 - [SLO Burn Rate](docs/runbooks/slo-burn-rate.md) — resposta a alertas de SLO
+
+## Postmortems
+
+Postmortems blameless de incidentes (reais ou simulados via chaos test).
+
+- [TEMPLATE](docs/postmortems/TEMPLATE.md) — formato Google SRE Workbook em pt-BR
+- [README](docs/postmortems/README.md) — como gerar via `postmortem-specialist`, naming convention, checklist de revisão
 
 ## Oracle Cloud (OKE)
 
@@ -190,6 +198,6 @@ sre-lab/
 - [x] **Fase 3** — Dashboard Grafana de SLO (ConfigMap auto-importado)
 - [x] **Fase 4** — Chaos test automatizado (`make chaos-test`, validação end-to-end)
 - [x] **Fase 4** — Workflow GitHub Actions executando chaos test em PR
-- [ ] **Fase 4** — Postmortem automatizado via git-specialist agent
+- [x] **Fase 4** — Postmortem automatizado via `postmortem-specialist` agent
 - [ ] **Fase 4** — Replicar stack Minikube no OKE (Helm + manifests + SLO)
 - [ ] **Fase 4** — FinOps dashboard (custo por namespace)
