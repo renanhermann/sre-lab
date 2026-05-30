@@ -1,0 +1,96 @@
+# kube-prometheus-stack — values para OKE (Oracle Kubernetes Engine)
+#
+# Diferenças vs values do Minikube:
+# - Grafana e AlertManager SEM persistence (OCI block volume mínimo é 50GB
+#   por volume; Always Free total é 200GB — reservamos pro Prometheus).
+# - Grafana service ClusterIP (acesso via port-forward até Fase 5 ter Ingress+LB).
+# - adminPassword mais forte (cluster acessível via API pública).
+# - Resources um pouco maiores aproveitando 2x Standard3.Flex (2 OCPU/8GB cada).
+
+grafana:
+  adminPassword: "okesrelab-2026"
+  initChownData:
+    enabled: false
+  service:
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  persistence:
+    enabled: false       # emptyDir — dashboards via sidecar/ConfigMap, sem perda real
+  defaultDashboardsEnabled: true
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki-gateway.logging.svc.cluster.local
+      access: proxy
+      isDefault: false
+  sidecar:
+    dashboards:
+      enabled: true
+
+prometheus:
+  prometheusSpec:
+    retention: 3d
+    retentionSize: "40GB"   # margem dentro do PV de 50GB
+    resources:
+      requests:
+        cpu: 200m
+        memory: 768Mi
+      limits:
+        cpu: 1000m
+        memory: 1536Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          # storageClassName omitido → usa oci-bv (default)
+          resources:
+            requests:
+              storage: 50Gi    # mínimo do OCI block volume
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+alertmanager:
+  alertmanagerSpec:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 20m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+    storage: {}    # sem volumeClaimTemplate → AlertManager usa emptyDir
+
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+nodeExporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi

@@ -1,0 +1,77 @@
+# Alloy — DaemonSet coletor de logs via Kubernetes API
+# Usa loki.source.kubernetes em vez de file-based — sem problemas de symlink
+# no Minikube com driver Docker.
+
+controller:
+  type: daemonset
+
+alloy:
+  # Sem mounts de host — coleta via K8s API diretamente
+  mounts:
+    varlog: false
+    dockercontainers: false
+
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+  configMap:
+    create: true
+    content: |
+      // === Coleta de logs via Kubernetes API (funciona sem host mounts) ===
+
+      // 1. Descobre todos os pods do cluster
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      // 2. Extrai labels úteis dos metadados do pod
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+          target_label  = "app"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app"]
+          target_label  = "app"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name"]
+          separator     = "/"
+          target_label  = "job"
+        }
+      }
+
+      // 3. Lê logs via Kubernetes API (equivalente a kubectl logs --follow)
+      loki.source.kubernetes "pods" {
+        targets    = discovery.relabel.pod_logs.output
+        forward_to = [loki.write.local.receiver]
+      }
+
+      // 4. Envia pro Loki via gateway
+      loki.write "local" {
+        endpoint {
+          url = "http://loki-gateway.logging.svc.cluster.local/loki/api/v1/push"
+        }
+      }
+
+rbac:
+  create: true
