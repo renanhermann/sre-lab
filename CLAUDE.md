@@ -66,9 +66,10 @@ Faz commits atômicos (um por arquivo), cria branches e documenta mudanças.
 
 ```
 sre-lab/
+├── .github/workflows/    # chaos-test.yml — CI valida pipeline SLO em PR
 ├── app/                  # código Go do traffic-simulator
 ├── cluster/              # scripts start.sh e expose.sh
-├── helm/                 # values dos Helm charts
+├── helm/                 # values local + values otimizados pra CI
 ├── manifests/
 │   ├── app/              # K8s manifests da app
 │   └── slo/              # PrometheusRules SLO + dashboard Grafana
@@ -123,7 +124,7 @@ slo:traffic_simulator_availability:error_ratio_rate5m > (14.4 * 0.005)
 - [x] Fase 2 — Provisionamento OKE via Terraform
 - [x] Fase 3 — SLO formal com error budget e burn rate alerts
 - [x] Fase 4 — Chaos test automatizado (`make chaos-test`, validação end-to-end)
-- [ ] Fase 4 — Workflow GitHub Actions executando chaos test em PR
+- [x] Fase 4 — Workflow GitHub Actions executando chaos test em PR
 - [ ] Fase 4 — Postmortem automatizado via Git Specialist
 - [ ] Fase 4 — Replicar stack Minikube → OKE (Helm + manifests + SLO)
 - [ ] Fase 4 — FinOps dashboard (custo por namespace)
