@@ -1,0 +1,41 @@
+# Grafana Ingress com TLS automático via cert-manager + Let's Encrypt
+#
+# ⚠️ O hostname __LB_IP__ é placeholder — substituir pelo IP público do LB
+# do ingress-nginx antes de aplicar:
+#
+#   LB_IP=$(kubectl -n ingress-nginx get svc ingress-nginx-controller \
+#     -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+#   sed "s/__LB_IP__/${LB_IP//./-}/g" grafana-ingress.yaml | kubectl apply -f -
+#
+# nip.io resolve qualquer subdomínio do tipo <ip-com-hifens>.nip.io pro IP.
+# Ex: 140-238-25-1.nip.io → 140.238.25.1
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: monitoring
+  annotations:
+    # cert-manager: emite cert TLS via Let's Encrypt (HTTP-01 challenge)
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Força redirect HTTP → HTTPS
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Headers de segurança básicos
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - grafana.__LB_IP__.nip.io
+      secretName: grafana-tls
+  rules:
+    - host: grafana.__LB_IP__.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-prometheus-stack-grafana
+                port:
+                  number: 80

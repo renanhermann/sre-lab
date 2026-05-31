@@ -22,6 +22,27 @@ grafana:
       memory: 512Mi
   persistence:
     enabled: false       # emptyDir — dashboards via sidecar/ConfigMap, sem perda real
+  # Probe defaults do chart têm timeoutSeconds=1 — apertado demais pra
+  # /api/health do Grafana (verifica DB, plugins, datasources; pode levar 1-3s
+  # sob carga leve). Subindo pra evitar Readiness flap.
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 30
+    failureThreshold: 10
+    successThreshold: 1
   defaultDashboardsEnabled: true
   additionalDataSources:
     - name: Loki
