@@ -204,4 +204,4 @@ sre-lab/
 - [x] **Fase 4** — Postmortem automatizado via `postmortem-specialist` agent
 - [x] **Fase 4** — Replicar stack Minikube no OKE (Helm + manifests + SLO + chaos test) — ver [docs/oke-deployment.md](docs/oke-deployment.md)
 - [x] **Fase 5** — Ingress-nginx + LB free OCI + cert-manager + Let's Encrypt (Grafana em URL pública HTTPS) — ver [docs/ingress-https.md](docs/ingress-https.md)
-- [ ] **Fase 4** — FinOps dashboard (custo por namespace)
+- [x] **Fase 6** — FinOps: OpenCost + custom OCI pricing + dashboard + 5 budget alerts — ver [docs/finops.md](docs/finops.md)

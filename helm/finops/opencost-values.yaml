@@ -1,0 +1,69 @@
+# OpenCost — values para lab
+#
+# - Aponta pro Prometheus do kube-prometheus-stack (in-cluster)
+# - Usa pricing custom OCI via ConfigMap externo (opencost-custom-pricing)
+# - ServiceMonitor habilitado pra Prom scrapear métricas opencost_*
+# - UI desabilitada (consumimos via Grafana, não via UI separada)
+
+opencost:
+  exporter:
+    # Conecta no Prom in-cluster do kube-prometheus-stack
+    defaultClusterId: sre-lab
+
+    # Recursos enxutos pra lab
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+
+  # Custom pricing OCI — chart cria ConfigMap com schema correto e preenche
+  # com os valores abaixo. Rates aproximadas pra VM.Standard3.Flex Intel x86
+  # em sa-saopaulo-1 (fonte: tabela pública OCI Compute Pricing).
+  customPricing:
+    enabled: true
+    configmapName: opencost-custom-pricing
+    configPath: /tmp/custom-config
+    createConfigmap: true
+    provider: custom
+    # IMPORTANTE: OpenCost interpreta CPU/RAM como rate MENSAL e divide por
+    # 730 internamente pra obter hourly. Storage também é MENSAL. Egress é
+    # por GB (sem conversão). Rates publicados pela OCI são por HORA (CPU/RAM)
+    # ou por MÊS (Storage) — converti pra mensal abaixo.
+    costModel:
+      description: "Custom OCI — VM.Standard3.Flex Intel x86, sa-saopaulo-1"
+      # $0.0255/OCPU/h × 730h = $18.615/OCPU/mês
+      CPU: "18.615"
+      spotCPU: "18.615"
+      # $0.00255/GB-RAM/h × 730h = $1.8615/GB-RAM/mês
+      RAM: "1.8615"
+      spotRAM: "1.8615"
+      GPU: "0"
+      # Block Volume Balanced ≈ $0.0255/GB/mês (já mensal)
+      storage: "0.0255"
+      zoneNetworkEgress: "0"
+      regionNetworkEgress: "0"
+      # Internet egress após Always Free 10TB: $0.0085/GB
+      internetNetworkEgress: "0.0085"
+
+  # Métricas pro Prom
+  metrics:
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: kube-prometheus-stack
+      namespace: opencost
+
+  prometheus:
+    # Aponta pro kube-prometheus-stack instalado em namespace=monitoring
+    internal:
+      enabled: true
+      serviceName: kube-prometheus-stack-prometheus
+      namespaceName: monitoring
+      port: 9090
+
+  # UI desabilitada — vamos consumir via Grafana
+  ui:
+    enabled: false

@@ -1,0 +1,157 @@
+# FinOps recording rules — pré-calcula métricas de custo agregadas
+#
+# Convenção de nomenclatura: finops:<scope>:<metric>
+# - scope: container, namespace, workload, cluster
+# - metric: hourly_cost, monthly_projected_cost, idle_cost, etc.
+#
+# Por que recording rules:
+# - Queries de custo são pesadas (join entre container_*_allocation e node_*_hourly_cost)
+# - Dashboards precisam responder em <1s; recording rules calculam a cada 30s
+# - Recording rules viram a "fonte de verdade" pra alertas de budget
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: finops-recording-rules
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    # ============================================================
+    # Cost per container (CPU + RAM allocation × node hourly rate)
+    # ============================================================
+    - name: finops.container.recording
+      interval: 30s
+      rules:
+        # Custo de CPU por container ($/h)
+        - record: finops:container:cpu_hourly_cost
+          expr: |
+            sum by (namespace, pod, container, node) (
+              container_cpu_allocation
+              * on(node) group_left()
+              node_cpu_hourly_cost
+            )
+
+        # Custo de RAM por container ($/h) — bytes → GB, * rate por GB-h
+        - record: finops:container:ram_hourly_cost
+          expr: |
+            sum by (namespace, pod, container, node) (
+              (container_memory_allocation_bytes / 1024 / 1024 / 1024)
+              * on(node) group_left()
+              node_ram_hourly_cost
+            )
+
+        # Custo total por container (CPU + RAM)
+        - record: finops:container:hourly_cost
+          expr: |
+            finops:container:cpu_hourly_cost
+            + on(namespace, pod, container, node)
+            finops:container:ram_hourly_cost
+
+    # ============================================================
+    # Cost per namespace (soma de containers)
+    # ============================================================
+    - name: finops.namespace.recording
+      interval: 30s
+      rules:
+        - record: finops:namespace:cpu_hourly_cost
+          expr: sum by (namespace) (finops:container:cpu_hourly_cost)
+
+        - record: finops:namespace:ram_hourly_cost
+          expr: sum by (namespace) (finops:container:ram_hourly_cost)
+
+        - record: finops:namespace:hourly_cost
+          expr: sum by (namespace) (finops:container:hourly_cost)
+
+        # Projeção mensal ($/mês) — 730 horas em um mês
+        - record: finops:namespace:monthly_projected_cost
+          expr: finops:namespace:hourly_cost * 730
+
+    # ============================================================
+    # Cost per workload (deployment/statefulset/daemonset)
+    # ============================================================
+    - name: finops.workload.recording
+      interval: 30s
+      rules:
+        # Agrupa por workload usando label do kube-state-metrics
+        # Assume convenção: app.kubernetes.io/name ou label "app"
+        - record: finops:workload:hourly_cost
+          expr: |
+            sum by (namespace, workload) (
+              label_replace(
+                finops:container:hourly_cost,
+                "workload", "$1", "pod",
+                "(.+)-[a-f0-9]+-[a-z0-9]+$"
+              )
+            )
+
+    # ============================================================
+    # Cluster-wide cost
+    # ============================================================
+    - name: finops.cluster.recording
+      interval: 30s
+      rules:
+        - record: finops:cluster:hourly_cost
+          expr: sum(node_total_hourly_cost)
+
+        - record: finops:cluster:monthly_projected_cost
+          expr: finops:cluster:hourly_cost * 730
+
+        # Custo NÃO alocado a workloads (overhead do cluster: system pods,
+        # daemonsets, espaço idle nos nodes)
+        - record: finops:cluster:unallocated_hourly_cost
+          expr: |
+            finops:cluster:hourly_cost
+            - sum(finops:namespace:hourly_cost)
+
+    # ============================================================
+    # Idle resources — recursos PAGOS mas não USADOS
+    # ============================================================
+    - name: finops.idle.recording
+      interval: 30s
+      rules:
+        # CPU usado de fato (média 5min) por namespace
+        # Nota: nesse cluster o cAdvisor não popula label "container" nas
+        # métricas de uso (só pod/namespace/node), então agregamos direto
+        # por namespace em vez de tentar joinar por container.
+        - record: finops:namespace:cpu_usage_cores
+          expr: |
+            sum by (namespace) (
+              rate(container_cpu_usage_seconds_total[5m])
+            )
+
+        # CPU alocado (soma das requests) por namespace
+        - record: finops:namespace:cpu_allocated_cores
+          expr: |
+            sum by (namespace) (container_cpu_allocation)
+
+        # CPU idle = alocado - usado, clampado em 0
+        - record: finops:namespace:cpu_idle_cores
+          expr: |
+            (
+              finops:namespace:cpu_allocated_cores
+              -
+              finops:namespace:cpu_usage_cores
+            ) > 0 or finops:namespace:cpu_allocated_cores * 0
+
+        # % idle = idle / alocado * 100
+        - record: finops:namespace:cpu_idle_pct
+          expr: |
+            (
+              finops:namespace:cpu_idle_cores
+              /
+              finops:namespace:cpu_allocated_cores
+            ) * 100
+
+        # Custo desperdiçado com CPU idle ($/h) — idle cores × rate do node
+        # (assume rate uniforme; em cluster multi-node valeria por node)
+        - record: finops:namespace:idle_cost_hourly
+          expr: |
+            finops:namespace:cpu_idle_cores
+            * on() group_left()
+            avg(node_cpu_hourly_cost)
+
+        # Projeção mensal do desperdício
+        - record: finops:namespace:idle_cost_monthly
+          expr: finops:namespace:idle_cost_hourly * 730

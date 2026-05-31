@@ -93,6 +93,7 @@ sre-lab/
 │   ├── chaos-testing.md  # validação automatizada do pipeline de SLO
 │   ├── oke-deployment.md # guia ponta a ponta da replicação Minikube → OKE
 │   ├── ingress-https.md  # guia Ingress + LB free OCI + cert-manager + Let's Encrypt
+│   ├── finops.md         # FinOps: OpenCost + custom OCI pricing + dashboard + alertas
 │   ├── postmortems/      # postmortems de incidentes (TEMPLATE + README)
 │   └── runbooks/         # runbooks executáveis por agent
 └── .claude/agents/       # definições dos agents
@@ -139,4 +140,4 @@ slo:traffic_simulator_availability:error_ratio_rate5m > (14.4 * 0.005)
 - [x] Fase 4 — Postmortem automatizado via Postmortem Specialist
 - [x] Fase 4 — Replicar stack Minikube → OKE (Helm + manifests + SLO + chaos test) — ver `docs/oke-deployment.md`
 - [x] Fase 5 — Ingress-nginx + LB free OCI + cert-manager + Let's Encrypt (Grafana em URL pública HTTPS) — ver `docs/ingress-https.md`
-- [ ] Fase 4 — FinOps dashboard (custo por namespace)
+- [x] Fase 6 — FinOps (OpenCost + custom OCI pricing + dashboard + 5 budget alerts) — ver `docs/finops.md`
