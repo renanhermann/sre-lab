@@ -1,0 +1,45 @@
+# ingress-nginx — values para OKE
+#
+# Service type LoadBalancer → OCI provisiona 1 Flexible LB.
+# Annotations específicas pra ficar dentro do Always Free (10 Mbps).
+# Reference: https://docs.oracle.com/iaas/Content/ContEng/Tasks/contengcreatingloadbalancer.htm
+
+controller:
+  service:
+    enabled: true
+    type: LoadBalancer
+    annotations:
+      # Flexible shape (Always Free) — vs "100Mbps" / "400Mbps" / "8000Mbps" (pagos)
+      service.beta.kubernetes.io/oci-load-balancer-shape: "flexible"
+      service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
+      service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "10"
+    # Local preserva client IP — útil pra logs e rate limiting
+    externalTrafficPolicy: Local
+
+  # Apenas 1 réplica (lab — Always Free LB tem 1 backend set)
+  replicaCount: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  # Métricas pro Prometheus
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: kube-prometheus-stack
+
+  admissionWebhooks:
+    enabled: true
+    patch:
+      enabled: true
+
+# Sem default backend (não precisa no lab)
+defaultBackend:
+  enabled: false
