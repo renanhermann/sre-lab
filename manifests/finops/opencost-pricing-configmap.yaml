@@ -1,0 +1,41 @@
+# Custom pricing config pro OpenCost — rates aproximadas do OCI
+# (VM.Standard3.Flex Intel x86 em sa-saopaulo-1, Block Volume Balanced)
+#
+# Fonte dos rates: tabela pública OCI Compute Pricing (consultada 31/05/2026).
+# Valores em USD/hora exceto quando indicado.
+#
+# Por que custom: OpenCost vem com pricing default AWS. No nosso lab a stack
+# simula OCI (cluster real foi OKE em sa-saopaulo-1), então usar rates OCI
+# torna o painel coerente com o pitch ("lab roda em OCI, custo medido em OCI").
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: opencost
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opencost-custom-pricing
+  namespace: opencost
+data:
+  default.json: |
+    {
+      "description": "Custom OCI pricing — VM.Standard3.Flex Intel x86, sa-saopaulo-1",
+      "provider": "custom",
+      "currency": "USD",
+
+      "CPU": "0.0255",
+      "RAM": "0.00255",
+
+      "spotCPU": "0.0255",
+      "spotRAM": "0.00255",
+
+      "GPU": "0",
+
+      "storage": "0.0000354",
+
+      "zoneNetworkEgress": "0",
+      "regionNetworkEgress": "0",
+      "internetNetworkEgress": "0.0085"
+    }

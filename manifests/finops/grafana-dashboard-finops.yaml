@@ -1,0 +1,388 @@
+# Dashboard Grafana FinOps — auto-importado pelo sidecar do kube-prometheus-stack
+# via label grafana_dashboard: "1".
+#
+# Painéis:
+#   1. Stats topo: cluster $/h, $/mês projetado, desperdício/mês, namespaces ativos
+#   2. Bar chart: custo mensal por namespace
+#   3. Pie chart: distribuição do gasto
+#   4. Table: namespaces com idle %
+#   5. Timeseries: evolução do custo total nas últimas 6h
+#   6. Stat: % do cluster com recursos alocados (allocated/total)
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-finops
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+    release: kube-prometheus-stack
+data:
+  finops.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {"type": "grafana", "uid": "-- Grafana --"},
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "FinOps — custo por namespace, idle resources e desperdício projetado (rates OCI)",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "yellow", "value": 0.1},
+                  {"color": "red", "value": 0.5}
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 4
+            }
+          },
+          "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+          "id": 1,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "pluginVersion": "12.0.0",
+          "targets": [
+            {
+              "expr": "finops:cluster:hourly_cost",
+              "legendFormat": "$/h",
+              "refId": "A"
+            }
+          ],
+          "title": "Cluster — custo por hora",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "yellow", "value": 50},
+                  {"color": "red", "value": 200}
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            }
+          },
+          "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+          "id": 2,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "finops:cluster:monthly_projected_cost",
+              "legendFormat": "$/mês",
+              "refId": "A"
+            }
+          ],
+          "title": "Cluster — projeção mensal",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "yellow", "value": 10},
+                  {"color": "red", "value": 50}
+                ]
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            }
+          },
+          "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+          "id": 3,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "sum(finops:namespace:idle_cost_monthly)",
+              "legendFormat": "desperdício/mês",
+              "refId": "A"
+            }
+          ],
+          "title": "Desperdício mensal (idle)",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null}
+                ]
+              },
+              "unit": "short",
+              "decimals": 0
+            }
+          },
+          "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+          "id": 4,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "expr": "count(finops:namespace:hourly_cost > 0)",
+              "legendFormat": "namespaces",
+              "refId": "A"
+            }
+          ],
+          "title": "Namespaces com custo",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "USD / mês",
+                "axisPlacement": "auto",
+                "lineWidth": 1,
+                "fillOpacity": 80,
+                "gradientMode": "none"
+              },
+              "unit": "currencyUSD",
+              "decimals": 2
+            }
+          },
+          "gridPos": {"h": 9, "w": 12, "x": 0, "y": 4},
+          "id": 5,
+          "options": {
+            "barWidth": 0.7,
+            "groupWidth": 0.7,
+            "legend": {"calcs": [], "displayMode": "hidden", "placement": "bottom"},
+            "orientation": "horizontal",
+            "showValue": "always",
+            "stacking": "none",
+            "tooltip": {"mode": "single"},
+            "xTickLabelRotation": 0,
+            "xTickLabelSpacing": 0
+          },
+          "targets": [
+            {
+              "expr": "sort_desc(finops:namespace:monthly_projected_cost)",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{namespace}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Custo mensal projetado por namespace",
+          "type": "barchart"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {"hideFrom": {"legend": false, "tooltip": false, "viz": false}},
+              "mappings": [],
+              "unit": "currencyUSD",
+              "decimals": 2
+            }
+          },
+          "gridPos": {"h": 9, "w": 12, "x": 12, "y": 4},
+          "id": 6,
+          "options": {
+            "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"]},
+            "pieType": "donut",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "tooltip": {"mode": "single"}
+          },
+          "targets": [
+            {
+              "expr": "finops:namespace:monthly_projected_cost",
+              "legendFormat": "{{namespace}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Distribuição do custo (donut)",
+          "type": "piechart"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "custom": {
+                "align": "auto",
+                "displayMode": "color-background",
+                "filterable": true
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "yellow", "value": 70},
+                  {"color": "red", "value": 90}
+                ]
+              },
+              "unit": "percent",
+              "decimals": 1
+            },
+            "overrides": [
+              {
+                "matcher": {"id": "byName", "options": "Custo/mês"},
+                "properties": [{"id": "unit", "value": "currencyUSD"}, {"id": "thresholds", "value": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}]
+              },
+              {
+                "matcher": {"id": "byName", "options": "Desperdício/mês"},
+                "properties": [{"id": "unit", "value": "currencyUSD"}, {"id": "thresholds", "value": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]}}]
+              }
+            ]
+          },
+          "gridPos": {"h": 9, "w": 24, "x": 0, "y": 13},
+          "id": 7,
+          "options": {
+            "showHeader": true,
+            "sortBy": [{"desc": true, "displayName": "Custo/mês"}]
+          },
+          "targets": [
+            {
+              "expr": "finops:namespace:monthly_projected_cost",
+              "format": "table",
+              "instant": true,
+              "refId": "A"
+            },
+            {
+              "expr": "finops:namespace:cpu_idle_pct",
+              "format": "table",
+              "instant": true,
+              "refId": "B"
+            },
+            {
+              "expr": "finops:namespace:idle_cost_monthly",
+              "format": "table",
+              "instant": true,
+              "refId": "C"
+            }
+          ],
+          "title": "Breakdown por namespace — custo, idle %, desperdício",
+          "type": "table",
+          "transformations": [
+            {
+              "id": "joinByField",
+              "options": {"byField": "namespace", "mode": "outer"}
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {"Time 1": true, "Time 2": true, "Time 3": true, "__name__ 1": true, "__name__ 2": true, "__name__ 3": true},
+                "renameByName": {
+                  "Value #A": "Custo/mês",
+                  "Value #B": "Idle %",
+                  "Value #C": "Desperdício/mês"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisLabel": "USD / hora",
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "opacity",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {"group": "A", "mode": "normal"}
+              },
+              "unit": "currencyUSD",
+              "decimals": 4
+            }
+          },
+          "gridPos": {"h": 9, "w": 24, "x": 0, "y": 22},
+          "id": 8,
+          "options": {
+            "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true},
+            "tooltip": {"mode": "multi", "sort": "desc"}
+          },
+          "targets": [
+            {
+              "expr": "finops:namespace:hourly_cost",
+              "legendFormat": "{{namespace}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Custo por hora ao longo do tempo (stacked por namespace)",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 39,
+      "tags": ["finops", "cost", "oci"],
+      "templating": {"list": []},
+      "time": {"from": "now-1h", "to": "now"},
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "FinOps — Custo por Namespace (OCI rates)",
+      "uid": "finops-namespace",
+      "version": 1,
+      "weekStart": ""
+    }

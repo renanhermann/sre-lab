@@ -1,0 +1,132 @@
+# FinOps budget alerts
+#
+# Filosofia: alertas de FinOps são "ticket" (não page) — desperdício não
+# acorda ninguém de madrugada, mas precisa entrar em fila pra revisão.
+# Severidade warning, com runbook apontando pra ação de rightsizing.
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: finops-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: finops.alerts
+      interval: 1m
+      rules:
+
+        # ============================================================
+        # Budget — namespace gastando muito (>= $20/mês projetados)
+        # ============================================================
+        - alert: NamespaceBudgetExceeded
+          expr: finops:namespace:monthly_projected_cost > 20
+          for: 15m
+          labels:
+            severity: warning
+            category: finops
+            page: "false"
+          annotations:
+            summary: "Namespace {{ $labels.namespace }} projetado em ${{ printf \"%.2f\" $value }}/mês — acima do budget de $20"
+            description: |
+              O namespace {{ $labels.namespace }} está consumindo ${{ printf "%.2f" $value }}/mês
+              em recursos computacionais (CPU + RAM), acima do budget de $20/mês definido.
+
+              Ação sugerida:
+                1. Rodar `kubectl top pods -n {{ $labels.namespace }}` pra ver consumo real
+                2. Cruzar com `finops:namespace:cpu_idle_pct` — se >70%, fazer rightsizing dos requests
+                3. Considerar HPA pra escalar dinamicamente em vez de over-provisioning fixo
+
+              Runbook: docs/runbooks/finops-budget-exceeded.md
+
+        # ============================================================
+        # Cluster total acima do limite
+        # ============================================================
+        - alert: ClusterBudgetExceeded
+          expr: finops:cluster:monthly_projected_cost > 200
+          for: 30m
+          labels:
+            severity: warning
+            category: finops
+            page: "false"
+          annotations:
+            summary: "Cluster total projetado em ${{ printf \"%.2f\" $value }}/mês — acima de $200"
+            description: |
+              Custo total do cluster está em ${{ printf "%.2f" $value }}/mês.
+              Investigar quais namespaces puxaram o pico via dashboard FinOps.
+
+        # ============================================================
+        # Idle alto em namespace caro (gerador de pitch real do FinOps)
+        # ============================================================
+        - alert: WorkloadHighIdleResources
+          expr: |
+            (finops:namespace:cpu_idle_pct > 80)
+            and on(namespace)
+            (finops:namespace:monthly_projected_cost > 5)
+          for: 1h
+          labels:
+            severity: warning
+            category: finops
+            page: "false"
+          annotations:
+            summary: "Namespace {{ $labels.namespace }} com {{ printf \"%.0f\" $value }}% de CPU idle"
+            description: |
+              O namespace {{ $labels.namespace }} alocou requests CPU mas está
+              usando menos de 20%. Custo desperdiçado: confirmar via
+              `finops:namespace:idle_cost_monthly{namespace="{{ $labels.namespace }}"}`.
+
+              Provável causa:
+                - Over-provisioning dos requests no Deployment/StatefulSet
+                - Workload com peak load esporádico (avaliar VPA ou HPA)
+
+              Ação: reduzir requests pra ~120% do uso real e re-deploy.
+
+        # ============================================================
+        # Cluster com mais de 50% do gasto em recursos não alocados
+        # (overhead/idle dos nodes — pode indicar nodes muito grandes
+        # ou bin-packing ruim)
+        # ============================================================
+        - alert: HighClusterOverhead
+          expr: |
+            (finops:cluster:unallocated_hourly_cost / finops:cluster:hourly_cost) > 0.5
+          for: 1h
+          labels:
+            severity: warning
+            category: finops
+            page: "false"
+          annotations:
+            summary: "{{ printf \"%.0f\" $value }}% do cluster está sem workload alocado"
+            description: |
+              Mais de metade do custo do cluster ({{ printf "%.1f" $value }})
+              está em espaço dos nodes que não tem nenhum workload alocado.
+
+              Possíveis causas:
+                - Nodes super-dimensionados pro workload atual
+                - Cluster autoscaler desligado ou mal configurado
+                - Workloads com requests baixos demais (subutilizando os nodes)
+
+              Ação: considerar reduzir tamanho dos nodes ou habilitar autoscaler
+              com `--scale-down-utilization-threshold=0.5`.
+
+        # ============================================================
+        # Anomalia: custo /h dobrou em comparação à última hora
+        # ============================================================
+        - alert: ClusterCostSpike
+          expr: |
+            finops:cluster:hourly_cost
+            >
+            (avg_over_time(finops:cluster:hourly_cost[1h] offset 1h) * 2)
+          for: 10m
+          labels:
+            severity: warning
+            category: finops
+            page: "false"
+          annotations:
+            summary: "Cluster cost spike: custo atual ${{ printf \"%.4f\" $value }}/h é 2x+ a média da hora anterior"
+            description: |
+              Custo do cluster por hora dobrou em relação à hora anterior.
+              Investigar:
+                1. Deploy recente que mudou requests de algum workload?
+                2. HPA escalou réplicas além do esperado?
+                3. Novo namespace criado consumindo muito?
