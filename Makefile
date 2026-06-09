@@ -6,7 +6,8 @@
 .PHONY: help cluster-up cluster-down expose \
         chaos-baseline chaos-quick chaos-test chaos-clean \
         app-build app-restart \
-        slo-apply slo-status
+        slo-apply slo-status \
+        oke-up oke-down
 
 # ── Cluster ─────────────────────────────────────────────────────────────
 
@@ -61,6 +62,14 @@ slo-status:    ## resumo do estado atual dos SLOs (SLI 30d, budget, alertas firi
 		echo "── Alertas SLO firing ──" ; \
 		curl -sf http://localhost:19090/api/v1/alerts | python3 -c "import sys,json; [print(f'  🔴 {a[\"labels\"][\"alertname\"]}') for a in json.load(sys.stdin)['data']['alerts'] if a['labels'].get('slo') and a['state']=='firing'] or print('  (nenhum)')" ; \
 		kill $$PF 2>/dev/null ; wait $$PF 2>/dev/null || true
+
+# ── OKE (Fase 4/5/6 stack completa) ─────────────────────────────────────
+
+oke-up:        ## sobe OKE com toda a stack (obs + app + SLO + ingress + finops) — ~25min
+	@./cluster/install-oke-stack.sh
+
+oke-down:      ## destrói cluster OKE (preserva Foundation Always Free)
+	@./cluster/destroy-oke-stack.sh
 
 # ── Help ────────────────────────────────────────────────────────────────
 
