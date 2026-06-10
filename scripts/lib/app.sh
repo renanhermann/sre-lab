@@ -6,10 +6,12 @@
 
 : "${APP_URL:=http://localhost:18080}"
 
-# app::healthy — verifica que o endpoint /health responde 2xx.
+# app::healthy — verifica que o app está vivo (port-forward + processo).
+# Usa /livez (NÃO /health) pra não dar falso negativo caso o fault já
+# esteja ativo. /livez é trivial e ignora fault injection.
 app::healthy() {
   local code
-  code=$(curl -s -o /dev/null -w '%{http_code}' "${APP_URL}/health")
+  code=$(curl -s -o /dev/null -w '%{http_code}' "${APP_URL}/livez")
   [[ "${code}" == "200" ]]
 }
 
