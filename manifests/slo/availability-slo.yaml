@@ -13,8 +13,14 @@ spec:
     # ─── Recording rules ──────────────────────────────────────────────────
     # Pré-calcula o SLI (error ratio) em múltiplas janelas. As janelas curtas
     # (5m/30m/2h/6h) servem ao "short window" do multi-burn-rate; as longas
-    # (1h/6h/1d/3d) ao "long window". /stress/.* é excluído porque é tráfego
-    # de chaos controlado — não consome error budget.
+    # (1h/6h/1d/3d) ao "long window".
+    #
+    # Exclusões do SLI:
+    #   /stress/.*  — tráfego de chaos controlado (não consome error budget).
+    #   /livez      — endpoint INTERNO usado por liveness/readiness probes
+    #                 do K8s. Separado do /health pra evitar que o fault
+    #                 injection mate os pods e zere o counter Prometheus
+    #                 durante chaos test. Não é caminho de produção.
     #
     # Nota: o numerador (5xx) é envelopado em `or vector(0)` para retornar 0
     # quando nenhum 5xx existir no range. Sem isso, a expressão "vetor vazio
@@ -37,77 +43,77 @@ spec:
         - record: slo:traffic_simulator_availability:error_ratio_rate5m
           expr: |
             (
-              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[5m]))
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez", status=~"5.."}[5m]))
               or vector(0)
             )
             /
-            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[5m]))
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez"}[5m]))
           labels:
             service: traffic-simulator
 
         - record: slo:traffic_simulator_availability:error_ratio_rate30m
           expr: |
             (
-              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[30m]))
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez", status=~"5.."}[30m]))
               or vector(0)
             )
             /
-            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[30m]))
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez"}[30m]))
           labels:
             service: traffic-simulator
 
         - record: slo:traffic_simulator_availability:error_ratio_rate1h
           expr: |
             (
-              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[1h]))
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez", status=~"5.."}[1h]))
               or vector(0)
             )
             /
-            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[1h]))
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez"}[1h]))
           labels:
             service: traffic-simulator
 
         - record: slo:traffic_simulator_availability:error_ratio_rate2h
           expr: |
             (
-              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[2h]))
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez", status=~"5.."}[2h]))
               or vector(0)
             )
             /
-            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[2h]))
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez"}[2h]))
           labels:
             service: traffic-simulator
 
         - record: slo:traffic_simulator_availability:error_ratio_rate6h
           expr: |
             (
-              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[6h]))
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez", status=~"5.."}[6h]))
               or vector(0)
             )
             /
-            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[6h]))
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez"}[6h]))
           labels:
             service: traffic-simulator
 
         - record: slo:traffic_simulator_availability:error_ratio_rate1d
           expr: |
             (
-              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[1d]))
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez", status=~"5.."}[1d]))
               or vector(0)
             )
             /
-            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[1d]))
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez"}[1d]))
           labels:
             service: traffic-simulator
 
         - record: slo:traffic_simulator_availability:error_ratio_rate3d
           expr: |
             (
-              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[3d]))
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez", status=~"5.."}[3d]))
               or vector(0)
             )
             /
-            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[3d]))
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez"}[3d]))
           labels:
             service: traffic-simulator
 
@@ -115,11 +121,11 @@ spec:
         - record: slo:traffic_simulator_availability:error_ratio_rate30d
           expr: |
             (
-              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*", status=~"5.."}[30d]))
+              sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez", status=~"5.."}[30d]))
               or vector(0)
             )
             /
-            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*"}[30d]))
+            sum(rate(traffic_simulator_requests_total{path!~"/stress/.*|/livez"}[30d]))
           labels:
             service: traffic-simulator
 
