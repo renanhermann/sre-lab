@@ -6,7 +6,7 @@
 > **Data do incidente**: 2026-06-09
 > **Data do postmortem**: 2026-06-09
 > **Severidade**: SEV2
-> **Duração**: ~00:01:30 (impacto agudo no caminho de produção: 20:57:24 → ~20:58:45)
+> **Duração**: ~00:03:30 (impacto agudo no caminho de produção: 22:35:30 → 22:39:00)
 
 ---
 
@@ -23,14 +23,15 @@
 
 > Legível por gestor não-técnico.
 
-Em 2026-06-09, entre 20:30 e 21:00 (America/São_Paulo), foi executado um **chaos test
+Em 2026-06-09, entre **22:30 e 22:45** (America/São_Paulo), foi executado um **chaos test
 controlado** no laboratório de SRE para validar a cadeia de detecção de falhas. Um fault
-sintético (HTTP 500) foi injetado no endpoint `/health` do `traffic-simulator` por volta
-de **20:57**, fazendo o error rate atingir **pico de ~49%** `[fato]` e disparando os
-alertas de SLO burn rate e o alerta RED `HighErrorRate` conforme esperado. O sistema
-**se recuperou sozinho** com o erro voltando a <1% até **~20:58:45** `[fato]`, após o fim
-do fault. **O objetivo do exercício — confirmar que o pipeline de detecção dispara — foi
-atingido.** Nenhum usuário real foi afetado.
+sintético (HTTP 5xx) foi injetado no endpoint `/health` do `traffic-simulator` por volta
+de **22:35:30**, fazendo o error rate atingir **pico de 48.55%** às 22:38:30 `[fato]` e
+disparando o alerta RED `HighErrorRate` (22:37:00) e o burn rate `SLOAvailabilityFastBurn`
+(22:39:00) conforme esperado `[fato]`. O sistema **se recuperou sozinho** com o erro
+voltando a 0% a partir de **22:39:30** `[fato]`, após o fim do fault. **O objetivo do
+exercício — confirmar que o pipeline de detecção dispara — foi atingido.** Nenhum usuário
+real foi afetado.
 
 ---
 
@@ -41,10 +42,10 @@ atingido.** Nenhum usuário real foi afetado.
 | Dimensão | Valor |
 |---|---|
 | Usuários afetados | Nenhum usuário real (tráfego 100% sintético) `[fato]` |
-| Requests com erro | Pico ~49% do tráfego retornou 5xx às 20:57:45 `[fato]`; ~1 min de janela aguda. Estimativa absoluta: throughput médio ~1.8 rps, pico ~15 rps → ordem de algumas centenas de requests com erro no minuto de pico `[hipótese — interpolação a partir de rate]` |
-| Latência adicional (P99) | Desprezível — P99 ~0.005s estável em toda a janela `[fato]` (o fault retorna 5xx rápido, não adiciona latência) |
-| Error budget consumido | Budget de disponibilidade **já estava esgotado antes da janela** (`error_budget_remaining` = -7.28 no início, -7.30 no fim) `[fato]`. Variação na janela: ~0.02 (consumo marginal adicional) `[fato]`. O valor negativo reflete chaos tests anteriores acumulados no laboratório `[hipótese — validar histórico de execuções]` |
-| SLOs violados | `traffic_simulator_availability` (99.5%) — burn rate excedeu thresholds de fast/medium/slow burn na janela `[fato]` |
+| Requests com erro | Janela aguda de ~3.5 min (22:35:30 → 22:39:00) com error rate entre 41.9% e 48.55% `[fato]`. Estimativa absoluta: throughput médio na janela ~3.92 rps, pico ~14.93 rps `[fato]`; com ~45% de erro sobre o pico de tráfego, ordem de **algumas centenas de requests 5xx** no intervalo agudo `[hipótese — interpolação a partir de rate × duração]` |
+| Latência adicional (P99) | Desprezível — P99 entre 0.018s (médio) e 0.023s (pico) em toda a janela `[fato]` (o fault retorna 5xx rápido, não adiciona latência) |
+| Error budget consumido | Budget de disponibilidade **já estava esgotado antes da janela** (`error_budget_remaining` = -9.6898 às 22:30) `[fato]`. Durante a janela aguda consumiu de -9.6838 (22:35) a -11.1807 (22:39) → **~1.50 de budget adicional queimado** `[fato]`. O valor já negativo reflete chaos tests anteriores acumulados no laboratório `[hipótese — validar histórico de execuções]` |
+| SLOs violados | `traffic_simulator_availability` (target 99.5%) — burn rate excedeu thresholds de fast/medium/slow/slowest burn na janela `[fato]`. `error_ratio_rate5m` chegou a 0.5363, muito acima do threshold de fast burn (14.4 × 0.005 = 0.072) `[fato]` |
 | Receita/SLA impactados | Nenhum — ambiente de laboratório, sem SLA com cliente `[fato]` |
 
 ---
@@ -55,182 +56,187 @@ atingido.** Nenhum usuário real foi afetado.
 
 | Hora | Evento | Fonte |
 |---|---|---|
-| 20:30:00 | `SLOAvailabilityBudgetExhausted` (warning) já firing no início da janela — budget esgotado por execuções anteriores | Prometheus / AlertManager |
-| 20:30:00 | `SLOAvailabilityFastBurn` (critical) firing — resíduo de burn rate de fault anterior (5m=0.21 às 20:30, zera às 20:31) | Prometheus / AlertManager |
-| 20:30:45 | `SLOAvailabilityMediumBurn` (critical) firing | Prometheus / AlertManager |
-| 20:31:00 | `SLOAvailabilityFastBurn` resolve | Prometheus / AlertManager |
-| 20:40:45 | `SLOAvailabilitySlowBurn` (warning) firing | Prometheus / AlertManager |
-| 20:56:00 | `SLOAvailabilityMediumBurn` resolve | Prometheus / AlertManager |
-| ~20:57:00 | **Fault sintético injetado em `/health` (HTTP 500)** — início real do impacto agudo desta janela | Prometheus / kubectl (inferido do efeito) |
-| 20:57:24 | Liveness probe falha (HTTP 500) no pod `...-2cnbs` (x8) | kubectl events |
-| 20:57:30 | Primeira amostra RED anômala: error rate 42.99% | Prometheus |
-| 20:57:33 | Readiness probe falha (HTTP 500) no pod `...-zqf4r` (x8) | kubectl events |
-| 20:57:45 | Pico de error rate RED: 49.19% | Prometheus |
-| 20:57:38 | Pod `...-zqf4r` killed por falha de liveness probe e reiniciado | kubectl events |
-| 20:58:00 | `error_ratio_rate5m` do SLI atinge pico 0.477 (caminho de produção `/health`) | Prometheus |
-| 20:58:15 | Error rate RED já em 1.85% — recuperação em curso | Prometheus |
-| ~20:58:45 | **Recuperação confirmada**: error rate RED <1% (0.97%) | Prometheus |
-| 20:59:00 | `HighErrorRate` (warning, RED) firing — dispara após o pico devido ao `for:` do alerta | Prometheus / AlertManager |
-| 20:59:15 | `HighErrorRate` resolve | Prometheus / AlertManager |
-| 21:00:00 | `SLOAvailabilitySlowBurn` ainda firing no fim da janela (janela longa do burn rate) | Prometheus / AlertManager |
+| 22:30:00 | `SLOAvailabilityBudgetExhausted` (warning) já firing no início da janela — budget esgotado por execuções anteriores | Prometheus |
+| 22:30:00 | `SLOAvailabilityMediumBurn` / `SLOAvailabilitySlowBurn` / `SLOAvailabilitySlowestBurn` já firing — resíduo de burn de faults anteriores | Prometheus |
+| 22:30:00 | Ruído de cluster pré-existente (lab single-node): `TargetDown` (×3), `etcdInsufficientMembers`, `KubeSchedulerInstanceUnreachable`, `KubeControllerManagerInstanceUnreachable`, `NodeClockNotSynchronising` já firing — **não relacionados ao chaos test** | Prometheus |
+| 22:30:00 → 22:35:00 | Error rate em 0.00% — baseline estável, fault ainda não injetado | Prometheus |
+| ~22:35:30 | **Início real do impacto**: error rate salta para 41.90% (primeira amostra anômala) — fault `/admin/fault` injetando 5xx em `/health` | Prometheus |
+| 22:37:00 | Alerta RED `HighErrorRate` (warning) dispara | Prometheus |
+| 22:38:30 | **Pico de error rate: 48.55%** | Prometheus |
+| 22:39:00 | Alerta `SLOAvailabilityFastBurn` (critical) dispara (após `for:` cumprido) | Prometheus |
+| ~22:39:00 | Última amostra anômala (43.20%) — fault encerra | Prometheus |
+| 22:39:30 | **Recovery confirmado**: error rate volta a 0.00% e permanece estável | Prometheus |
+| 22:40:30 | Alerta `HighErrorRate` resolve | Prometheus |
+| 22:45:00 | Fim da janela de análise. `SLOAvailabilityFastBurn` ainda firing (janelas de 5m/1h ainda drenando o fault) | Prometheus |
 
-> Ruído de baseline do Minikube observado e **excluído** da análise por não ser do app:
-> `KubeControllerManagerInstanceUnreachable`, `KubeSchedulerInstanceUnreachable`,
-> `NodeClockNotSynchronising`, `TargetDown`, `etcdInsufficientMembers`, `etcdMembersDown`,
-> `Watchdog` — todos firing de forma constante na janela inteira (control plane single-node).
+> **Nota — ações humanas**: nenhuma ação de mitigação humana foi capturada nas fontes de
+> observabilidade. Como exercício controlado, a recuperação foi por término do fault
+> (kill switch implícito do `/admin/fault` ao expirar a duration). Preencher TTA/TTM em
+> revisão humana se houve resposta manual.
 
 ---
 
 ## Detecção
 
-- **Como foi detectado?** Detecção automática. O exercício validou três camadas em paralelo:
-  burn rate alerts de SLO (fast/medium/slow), alerta RED `HighErrorRate`, e eventos do
-  Kubernetes (falha de probes). `[fato]`
-- **Tempo até detecção (TTD)**: o impacto agudo começou ~20:57:24 (primeira falha de probe)
-  e a primeira amostra RED anômala foi 20:57:30 → **TTD ≈ 00:00:06 para o sinal RED**. `[fato]`
-  Para o alerta `HighErrorRate` firing (com `for:`), 20:57:30 → 20:59:00 = **~00:01:30**. `[fato]`
-- **O alerta foi acionável?** Os alertas de SLO (`SLOAvailability*`) possuem runbook em
-  `docs/runbooks/` — verificar cobertura. `[hipótese — validar existência do runbook específico]`
-  O alerta `HighErrorRate` deve apontar para runbook de error rate. Se algum não tiver, vira action item.
-- **Algum sinal anterior foi perdido?** Não no contexto do exercício. Nota: o `error_budget_remaining`
-  já estava negativo (-7.3) **antes** da janela, indicando burn acumulado de execuções anteriores —
-  esperado em laboratório, mas mascararia o sinal de um fault novo num cenário real. `[fato]`
+- **Como o incidente foi detectado?** Automaticamente — alertas RED (`HighErrorRate`) e
+  burn rate de SLO (`SLOAvailabilityFastBurn`) dispararam conforme projetado. `[fato]`
+- **Tempo até detecção (TTD)**: do início real (22:35:30) ao primeiro alerta acionável do
+  exercício (`HighErrorRate` às 22:37:00) = **~00:01:30** `[fato]`. O `SLOAvailabilityFastBurn`
+  disparou às 22:39:00 (~00:03:30 após o início), consistente com a janela `for:` do alerta
+  de burn rate. `[fato]`
+- **O alerta foi acionável?** `HighErrorRate` e os burn rate alerts de SLO são acionáveis e
+  têm runbooks associados em `docs/runbooks/`. **Verificar em revisão se há runbook específico
+  para `SLOAvailabilityFastBurn`** — se não, abrir action item. `[hipótese — validar inventário de runbooks]`
+- **Algum sinal anterior foi perdido?** Não no contexto do exercício. Há ruído de cluster
+  pré-existente (`TargetDown`, `etcd*`, `KubeScheduler/ControllerManager Unreachable`,
+  `NodeClockNotSynchronising`) firing durante toda a janela, **não relacionado ao chaos test**
+  — é característico do lab single-node Minikube. Esse ruído pode mascarar sinais reais e é
+  candidato a action item de higiene de alertas. `[hipótese — validar com revisão]`
 
 ---
 
 ## Resposta
 
-- **Tempo até reconhecimento (TTA)**: N/A — exercício controlado, sem acionamento de on-call humano. `[fato]`
-- **Tempo até mitigação (TTM)**: o fault tinha duração definida; o sistema auto-recuperou.
-  Do pico (20:57:45) ao erro <1% (20:58:45) ≈ **00:01:00**. `[fato]`
-- **Quem respondeu**: Operador do chaos test (executor do exercício). — *(preencher nome em revisão)*
-- **Runbooks executados**: nenhum — não houve resposta humana de incidente, por ser teste planejado.
-- **Comunicação**: N/A — exercício de laboratório. *(Em produção, este campo registraria canal e cadência.)*
+- **Tempo até reconhecimento (TTA)**: — *(sem evidência de reconhecimento humano nas fontes; preencher em revisão)*
+- **Tempo até mitigação (TTM)**: recuperação automática por término do fault às ~22:39:30; sem mitigação humana registrada. `[fato]`
+- **Quem respondeu**: — *(exercício controlado; preencher se houve operador)*
+- **Runbooks executados**: — *(nenhum registrado; validar em revisão)*
+- **Comunicação**: — *(preencher em revisão — exercício de lab, comunicação provavelmente não aplicável)*
 
 ---
 
 ## Recuperação
 
-- **O que estabilizou o sistema?** O fim do fault sintético injetado (duração limitada do
-  `/admin/fault`) — após cessar, `/health` voltou a responder 200 e as probes do Kubernetes
-  voltaram a passar. `[fato]` (recuperação visível na queda do error rate de ~49% para <1% em ~1 min)
-- **A mitigação foi temporária ou definitiva?** Definitiva para esta janela — o fault era de duração
-  fixa e não recorreu. `[fato]`
-- **Houve impacto residual?** Os pods `...-2cnbs` (17 restarts) e `...-zqf4r` (9 restarts) acumularam
-  reinícios por falha de liveness durante o fault `[fato]`. Após a recuperação ficaram estáveis.
-  O `error_ratio_rate5m` do SLI ainda decaía no fim da janela (janela móvel de 5m) — resíduo
-  estatístico esperado, não impacto real. `[fato]`
+- **O que estabilizou o sistema?** Término do fault injetado via `/admin/fault` (o efeito
+  expira pela `duration` configurada ou por `rate=0`). Error rate retornou a 0% a partir de
+  22:39:30. `[fato]` / `[hipótese — mecanismo exato de término: validar comando executado]`
+- **A mitigação foi temporária ou definitiva?** Definitiva para esta execução — o fault é
+  pontual e não deixa estado residual no app. `[fato]`
+- **Houve impacto residual após "resolvido"?** Sim, esperado: os burn rate alerts de SLO
+  (`SLOAvailabilityFastBurn`, médio/lento) permaneceram firing após 22:39:30 porque operam
+  sobre janelas deslizantes de 5m/1h que ainda continham o fault. Isso é comportamento
+  correto, não um bug. O `error_budget_remaining` ficou em -11.1768 ao fim da janela. `[fato]`
 
 ---
 
 ## Causa Raiz
 
-> ⚠️ Cada item marcado como FATO ou HIPÓTESE.
+> ⚠️ **Marque cada item como FATO ou HIPÓTESE.**
 
 ### Causa imediata
-Injeção **deliberada e controlada** de fault HTTP 500 no endpoint `/health` (caminho de produção
-que alimenta o SLI de disponibilidade), via chaos primitive `/admin/fault`, como parte do exercício
-de validação. `[fato]` — comprovado por:
-- presença do endpoint `/admin/fault` (responde HTTP 405 a GET, rota existe) `[fato]`;
-- eventos do Kubernetes mostrando probes falhando com `statuscode: 500` em `/health` às 20:57:24 `[fato]`;
-- pico de `error_ratio_rate5m` do SLI (0.477) coincidente às 20:58 `[fato]`.
+Injeção deliberada de fault HTTP 5xx no endpoint `/health` (caminho de produção que consome
+error budget), via `POST /admin/fault`, fazendo o error rate subir a um pico de 48.55%
+entre 22:35:30 e 22:39:00.
 
-A hora exata da injeção (`rate`/`duration` usados) não está nos dados coletados — `[hipótese — validar
-com o comando/log do executor do chaos test]`.
+- O **fault sintético** e a janela temporal são **`[fato]`** (error rate de 0% → ~45-48% →
+  0% em ~3.5 min, P99 estável e sem restarts de pod são a assinatura clássica de fault 5xx
+  injetado, não de falha real de processo).
+- A **atribuição ao endpoint `/admin/fault`** e os parâmetros exatos (`rate`, `duration`)
+  são **`[hipótese — validar com histórico de comandos / Loki quando disponível]`**. Loki
+  estava indisponível durante esta coleta, então não há confirmação por log da chamada ao
+  endpoint.
 
 ### Causa contribuinte
-- O endpoint `/health` é simultaneamente alvo do chaos primitive **e** alvo das probes liveness/readiness
-  do Kubernetes, então o fault propagou para o ciclo de vida dos pods (restarts), amplificando o sinal
-  além do error rate. `[hipótese — validar se é comportamento desejado para o exercício]`
-- O error budget já estava esgotado (-7.3) antes do exercício, fruto de chaos tests acumulados no lab,
-  o que torna o `error_budget_remaining` pouco informativo como sinal incremental. `[hipótese — validar
-  política de reset de budget entre exercícios]`
+- O **error budget já estava esgotado** (-9.69) antes do início da janela, por acúmulo de
+  chaos tests anteriores no laboratório. Isso significa que qualquer novo fault aprofunda um
+  budget já negativo. `[fato — valor medido]` / a atribuição a "chaos tests anteriores" é
+  `[hipótese — validar histórico de execuções]`.
+- **Ruído de alertas de cluster** (`TargetDown`, `etcd*`, `KubeScheduler/ControllerManager
+  Unreachable`, `NodeClockNotSynchronising`) firing continuamente reduz a relação sinal/ruído
+  e pode mascarar incidentes reais. `[hipótese — validar se é esperado no lab single-node]`
 
 ### Análise dos 5 porquês (opcional)
-> Não preenchido automaticamente — os dados sustentam a causa imediata como evento planejado.
-> Os 5 porquês não se aplicam a um fault deliberado; preencher apenas se a revisão identificar
-> comportamento inesperado do pipeline.
+> Não preenchida — dados insuficientes para sustentar a cadeia além da causa imediata
+> (exercício controlado, sem falha sistêmica genuína a investigar). Preencher em revisão se relevante.
 
 ---
 
 ## O Que Correu Bem
 
-> Preencher em revisão humana após sync de postmortem.
+> Preencher/validar em revisão humana após sync de postmortem. Candidatos observados nos dados:
+- Pipeline de detecção disparou como projetado: `HighErrorRate` em ~1m30s e `SLOAvailabilityFastBurn` em ~3m30s. `[fato]`
+- Recuperação automática limpa (error rate 48.55% → 0% em uma amostra), sem impacto residual no app. `[fato]`
+- Sem restarts de pod nem degradação de latência — o fault foi cirúrgico e contido. `[fato]`
 
 ## O Que Correu Mal
 
-> Preencher em revisão humana após sync de postmortem.
+> Preencher em revisão humana após sync de postmortem. Candidatos observados nos dados:
+- Error budget já esgotado antes do exercício (-9.69), tornando o sinal de budget menos útil para distinguir o fault desta execução. `[fato]`
+- Ruído de alertas de infraestrutura do cluster compete com os sinais do exercício. `[fato]`
+- Loki indisponível durante a coleta — impossível confirmar por log a chamada ao `/admin/fault`. `[fato]`
 
 ## Onde Tivemos Sorte
 
 > Preencher em revisão humana após sync de postmortem.
+- N/A — exercício controlado; o "blast radius" foi sintético por design.
 
 ---
 
 ## Action Items
 
-> Sugestões automáticas (sem owner/prazo). Validar e atribuir em revisão humana.
+> ⚠️ Itens abaixo são **sugestões automáticas sem owner/prazo** — confirmar e atribuir em revisão.
 > Action items sem owner não saem do papel.
 
 | # | Ação | Tipo | Owner | Prazo | Prioridade | Tracking |
 |---|---|---|---|---|---|---|
-| 1 | *(sugestão)* Confirmar que `SLOAvailabilityFastBurn/MediumBurn/SlowBurn` e `HighErrorRate` têm runbook em `docs/runbooks/` e link no alerta | detectar | — | — | P2 | — |
-| 2 | *(sugestão)* Definir política de reset/snapshot do error budget entre chaos tests no lab, para que `error_budget_remaining` seja sinal incremental confiável | detectar | — | — | P2 | — |
-| 3 | *(sugestão)* Restaurar acesso ao Loki durante exercícios (estava indisponível: `:3100/ready` falhou) para correlação log↔métrica nos postmortems | detectar | — | — | P2 | — |
-| 4 | *(sugestão)* Registrar no exercício o comando exato do `/admin/fault` (rate/duration/hora) para tornar a "causa imediata" 100% factual sem inferência | prevenir | — | — | P3 | — |
-| 5 | *(sugestão)* Avaliar se compartilhar `/health` entre chaos primitive e probes do K8s é o comportamento desejado para validação isolada do pipeline | prevenir | — | — | P3 | — |
+| 1 | Confirmar existência de runbook para `SLOAvailabilityFastBurn`; criar se faltar | detectar | — | — | P2 | — |
+| 2 | Reduzir ruído de alertas de cluster single-node (`TargetDown`, `etcd*`, `*Unreachable`, `NodeClockNotSynchronising`) — inhibit rules ou silences no lab | detectar | — | — | P2 | — |
+| 3 | Restaurar/expor Loki antes de chaos tests para permitir confirmação por log do `/admin/fault` | detectar | — | — | P2 | — |
+| 4 | Definir política de reset de error budget sintético entre exercícios de lab (budget já estava em -9.69) | prevenir | — | — | P2 | — |
 
 ---
 
 ## Anexos
 
 ### Queries PromQL usadas na investigação
-```promql
-# Alertas firing na janela
-ALERTS{alertstate="firing"}
 
-# Error rate RED (%)
+```promql
+# Error rate %
 sum(rate(traffic_simulator_requests_total{status=~"5.."}[1m]))
 / sum(rate(traffic_simulator_requests_total[1m])) * 100
 
-# Throughput
+# Throughput (rps)
 sum(rate(traffic_simulator_requests_total[1m]))
 
-# P99
+# P99 latência
 histogram_quantile(0.99, sum(rate(traffic_simulator_request_duration_seconds_bucket[5m])) by (le))
 
 # SLO burn rate e budget
-slo:traffic_simulator_availability:error_ratio_rate1h
 slo:traffic_simulator_availability:error_ratio_rate5m
+slo:traffic_simulator_availability:error_ratio_rate1h
 slo:traffic_simulator_availability:error_budget_remaining
+
+# Alertas firing
+ALERTS{alertstate="firing"}
 ```
 
-### Trechos de log relevantes (Loki)
-> Loki estava **indisponível** durante a coleta (`http://localhost:3100/ready` falhou).
-> Logs do período não puderam ser correlacionados. Ver Action Item #3.
+### Dados-chave coletados (janela 22:30:00 → 22:45:00, UTC−3)
 
-### Eventos de cluster (kubectl)
-```
-20:57:24 [Warning] Unhealthy ...-2cnbs: Liveness probe failed: HTTP probe failed with statuscode: 500 (x8)
-20:57:33 [Warning] Unhealthy ...-zqf4r: Readiness probe failed: HTTP probe failed with statuscode: 500 (x8)
-20:57:36 [Warning] Unhealthy ...-2cnbs: Readiness probe failed: HTTP probe failed with statuscode: 500 (x19)
-20:57:38 [Normal]  Killing  ...-zqf4r: Container failed liveness probe, will be restarted (x2)
-```
-Restarts acumulados: `...-2cnbs` = 17 (reason=Error, exitCode=2); `...-zqf4r` = 9 (reason=Error, exitCode=2).
+- Error rate por amostra (step 30s): 0% até 22:35:00 → 41.90% (22:35:30), pico **48.55%** (22:38:30), 43.20% (22:39:00) → 0% a partir de 22:39:30. `[fato]`
+- Throughput: pico 14.93 rps / médio 3.92 rps. `[fato]`
+- P99 latência: pico 0.023s / médio 0.018s. `[fato]`
+- `error_ratio_rate5m`: início 0.5363, fim 0.4670 (threshold fast burn = 0.072). `[fato]`
+- `error_budget_remaining`: -9.6898 (22:30) → -11.1768 (22:45); queima aguda -9.6838→-11.1807 entre 22:35 e 22:39. `[fato]`
 
-### Resumo de alertas (AlertManager / Prometheus)
-| Alerta | Severidade | Firing |
+### Alertas firing na janela (Prometheus)
+
+| Alerta | Severity | Firing |
 |---|---|---|
-| SLOAvailabilityFastBurn | critical | 20:30:00 → 20:31:00 (resíduo) |
-| SLOAvailabilityMediumBurn | critical | 20:30:45 → 20:56:00 |
-| SLOAvailabilitySlowBurn | warning | 20:40:45 → 21:00:00 |
-| SLOAvailabilityBudgetExhausted | warning | toda a janela |
-| HighErrorRate (RED) | warning | 20:59:00 → 20:59:15 |
+| `HighErrorRate` | warning | 22:37:00 → 22:40:30 |
+| `SLOAvailabilityFastBurn` | critical | 22:39:00 → 22:45:00 (ainda firing no fim) |
+| `SLOAvailabilityMediumBurn` | critical | 22:30:00 → 22:45:00 |
+| `SLOAvailabilitySlowBurn` / `SLOAvailabilitySlowestBurn` | warning | 22:30:00 → 22:45:00 |
+| `SLOAvailabilityBudgetExhausted` | warning | 22:30:00 → 22:45:00 |
+| `TargetDown` (×3), `etcdInsufficientMembers`, `etcdMembersDown`, `KubeScheduler/ControllerManagerInstanceUnreachable`, `NodeClockNotSynchronising`, `HighClusterOverhead`, `WorkloadHighIdleResources` | warning/critical | 22:30:00 → 22:45:00 (ruído de cluster, não relacionado) |
+
+### Eventos de cluster (`kubectl get events`)
+- **0 eventos** de Warning/Error no namespace `default` na janela. `[fato]`
+- **0 restarts de pod** registrados. `[fato]`
+
+### Logs (Loki)
+- **Indisponível durante a coleta** (`/ready` não respondeu). Sem trechos de log. `[fato — limitação de coleta]`
 
 ---
 
 > Este postmortem é **blameless**. O foco é em sistemas e processos, nunca em pessoas.
 > Pessoas tomam a melhor decisão possível com a informação que têm no momento.
->
-> **Requer revisão humana** das seções "Causa Raiz", "O Que Correu Bem/Mal/Sorte" e
-> "Action Items" antes de mudar o status para *publicado*.
