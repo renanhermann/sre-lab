@@ -41,13 +41,9 @@ source "${SCRIPT_DIR}/lib/app.sh"
 
 # ── Defaults ────────────────────────────────────────────────────────────
 #
-# FAULT_RATE em 50% é um compromisso deliberado:
-# - alto suficiente pra rate5m cruzar threshold 7.2% confortavelmente
-# - baixo suficiente pra não disparar liveness probe restart na maioria
-#   das vezes (failureThreshold=3 → P(restart) ≈ 0.5³ = 12.5% por ciclo)
-# Rates ≥ 80% tornam o teste flaky por restart-induced port-forward drop.
-# Em prod real, esse anti-pattern é mitigado com /readyz separado pra
-# probes — não aplicado no lab. Ver docs/slo.md §7.2.
+# FAULT_RATE=50 dá rate5m bem acima do threshold (7.2%) sem efeito
+# colateral: as probes do K8s batem em /livez (separado), então fault
+# em /health não restarta os pods. Rates até ~80% também funcionam.
 FAULT_RATE=50
 FAULT_DURATION=10m
 LOAD_RPS=15

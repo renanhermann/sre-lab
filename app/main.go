@@ -89,7 +89,20 @@ func writeJSON(w http.ResponseWriter, code int, v any) {
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
-// GET /health — liveness e readiness probe do Kubernetes
+// GET /livez — liveness e readiness probe do Kubernetes.
+//
+// SEPARADO do /health de propósito: este endpoint NUNCA é afetado pelo
+// fault injection. Probes batem aqui pra não restartar pods durante chaos
+// test — o que zerava o counter Prometheus e impedia o burn rate alert
+// de firar. Ver docs/slo.md §7.2.
+//
+// Como NÃO é caminho de produção (só infra do K8s), o /livez é excluído
+// do SLI de disponibilidade no recording rule.
+func handleLivez(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// GET /health — endpoint de produção que carrega o SLI de disponibilidade.
 //
 // Quando o chaos primitive /admin/fault está ativo, esta handler injeta 5xx
 // numa taxa controlada. A injeção entra no path "/health" (caminho de
@@ -399,6 +412,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Observabilidade
+	mux.HandleFunc("GET /livez", instrument("/livez", handleLivez))
 	mux.HandleFunc("GET /health", instrument("/health", handleHealth))
 	mux.Handle("GET /metrics", promhttp.Handler())
 
